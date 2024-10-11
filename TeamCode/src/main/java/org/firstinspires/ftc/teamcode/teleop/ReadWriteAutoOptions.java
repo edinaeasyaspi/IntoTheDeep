@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import edina.opmodes.teleop.test.AutonomousOptions;
+import edu.edina.opmodes.teleop.test.AutonomousOptions;
 
 /**
  This class reads or writes AutonomousOptions objects to a file.

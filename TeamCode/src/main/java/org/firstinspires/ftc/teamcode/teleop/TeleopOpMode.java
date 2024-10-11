@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import edina.library.util.Robot;
-import edina.library.util.RobotConfiguration;
-import edina.library.util.RobotHardware;
-import edina.library.util.RobotState;
-import edina.library.util.SmartGamepad;
+import edu.edina.library.util.Robot;
+import edu.edina.library.util.RobotConfiguration;
+import edu.edina.library.util.RobotHardware;
+import edu.edina.library.util.RobotState;
+import edu.edina.library.util.SmartGamepad;
 
 public class TeleopOpMode extends OpMode {
     protected Robot robot;

@@ -10,9 +10,9 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import edina.library.util.GrabberSide;
-import edina.library.util.PiBot;
-import edina.library.util.RobotHardware;
+import edu.edina.library.util.GrabberSide;
+import edu.edina.library.util.PiBot;
+import edu.edina.library.util.RobotHardware;
 
 
 @TeleOp(name = "TeleOpMain 😀🤖🥧☠️🍀🤣")

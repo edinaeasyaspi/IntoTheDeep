@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import edina.library.util.Robot;
+import edu.edina.library.util.Robot;
 
 @TeleOp(name = "TeleopMultiThread", group = "teleop")
 @Disabled

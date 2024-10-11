@@ -9,8 +9,8 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import edina.library.util.RobotHardware;
-import edina.library.util.SmartGamepad;
+import edu.edina.library.util.RobotHardware;
+import edu.edina.library.util.SmartGamepad;
 
 @TeleOp(name = "DriveMe Webcam", group = "teleop")
 public class WebcamOpMode extends OpMode {

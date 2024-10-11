@@ -14,8 +14,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-import edina.library.util.RobotHardware;
-import edina.library.util.SmartGamepad;
+import edu.edina.library.util.RobotHardware;
+import edu.edina.library.util.SmartGamepad;
 
 @TeleOp(name = "DriveMeWebcam", group = "teleop")
 public class WebcamLinearOpmode extends LinearOpMode
