@@ -105,10 +105,10 @@ public class GyroAuto extends LinearOpMode {
     // These variable are declared here (as class members) so they can be updated in various methods,
     // but still be displayed by sendTelemetry()
     private double  targetHeading = 0;
-    private double  driveSpeed    = 0;
-    private double  turnSpeed     = 0;
-    private double  leftSpeed     = 0;
-    private double  rightSpeed    = 0;
+    private double  driveSpeed    = 1;
+    private double  turnSpeed     = 0.7;
+    private double  leftSpeed     = 0.5;
+    private double  rightSpeed    = 0.5;
     private int     lfdTarget, rfdTarget, rbdTarget, lbdTarget = 0;
 
 
@@ -138,7 +138,7 @@ public class GyroAuto extends LinearOpMode {
     static final double     P_DRIVE_GAIN           = 0.01;     // Larger is more responsive, but also less stable.
 
 
-    @SuppressLint("SuspiciousIndentation")
+
     @Override
     public void runOpMode() {
 
@@ -404,26 +404,37 @@ public class GyroAuto extends LinearOpMode {
      * @param drive forward motor speed
      * @param turn  clockwise turning motor speed.
      */
-    public void moveRobot(double drive, double turn) {
-        driveSpeed = drive;     // save this value as a class member so it can be used by telemetry.
-        turnSpeed  = turn;      // save this value as a class member so it can be used by telemetry.
 
-        leftSpeed  = drive - turn;
-        rightSpeed = drive + turn;
 
         // Scale speeds down if either one exceeds +/- 1.0;
-        double max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-        if (max > 1.0)
-        {
-            leftSpeed /= max;
-            rightSpeed /= max;
+        public void moveRobot(double drive, double turn) {
+            // Check if drive or turn is set to zero
+            if (drive == 0 && turn == 0) {
+                lfd.setPower(0);
+                lbd.setPower(0);
+                rfd.setPower(0);
+                rbd.setPower(0);
+                return; // Exit the function if no movement is needed
+            }
+
+            leftSpeed  = drive - turn;
+            rightSpeed = drive + turn;
+
+            // Scale speeds down if either one exceeds +/- 1.0;
+            double max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+            if (max > 1.0) {
+                leftSpeed /= max;
+                rightSpeed /= max;
+            }
+
+            lfd.setPower(leftSpeed);
+            lbd.setPower(leftSpeed);
+            rfd.setPower(rightSpeed);
+            rbd.setPower(rightSpeed);
         }
 
-        lfd.setPower(leftSpeed);
-        lbd.setPower(leftSpeed);
-        rfd.setPower(rightSpeed);
-        rbd.setPower(rightSpeed);
-    }
+
+
 
     /**
      *  Display the various control parameters while driving
