@@ -44,7 +44,8 @@ public class MecanumDriveBasic extends LinearOpMode {
     private DcMotor lbd = null;
     private DcMotor rfd = null;
     private DcMotor rbd = null;
-    private DcMotor liftMotor  = null;
+
+//    private DcMotor liftMotor  = null;
 
     @Override
     public void runOpMode() {
@@ -55,7 +56,10 @@ public class MecanumDriveBasic extends LinearOpMode {
         lbd  = hardwareMap.get(DcMotor.class, "lbd");
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         rbd = hardwareMap.get(DcMotor.class, "rbd");
-        liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+
+
+
+
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -81,6 +85,7 @@ public class MecanumDriveBasic extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -89,16 +94,9 @@ public class MecanumDriveBasic extends LinearOpMode {
             double yaw     =  gamepad1.right_stick_x;
 
 
-                while (opModeIsActive()) {
-                    if (gamepad2.right_bumper) {
-                        liftMotor.setPower(0.5);
-                        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                    } else {
-                        liftMotor.setPower(0);
-                    }
 
-            }
+
+
 
 
 
@@ -116,11 +114,23 @@ public class MecanumDriveBasic extends LinearOpMode {
             max = Math.max(max, Math.abs(rightBackPower));
 
 
+
             if (max > 1.0) {
                 leftFrontPower  /= max;
                 rightFrontPower /= max;
                 leftBackPower   /= max;
                 rightBackPower  /= max;
+
+            }
+
+    /*        while (opModeIsActive()) {
+                if (gamepad2.right_bumper) {
+                    liftMotor.setPower(0.5);
+                    liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                } else {
+                    liftMotor.setPower(0);
+                }
 
             }
 
@@ -143,13 +153,14 @@ public class MecanumDriveBasic extends LinearOpMode {
 
             // Send calculated power to wheels
             lfd.setPower(leftFrontPower);
-            rfd.setPower(leftBackPower);
+            rfd.setPower(rightFrontPower);
             rbd.setPower(rightBackPower);
             lbd.setPower(leftBackPower);
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "Karthik is really bad at driving" + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+
             telemetry.update();
         }
     }}
