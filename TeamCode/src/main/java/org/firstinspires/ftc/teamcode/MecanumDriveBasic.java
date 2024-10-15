@@ -94,12 +94,6 @@ public class MecanumDriveBasic extends LinearOpMode {
             double yaw     =  gamepad1.right_stick_x;
 
 
-
-
-
-
-
-
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
             double leftFrontPower  = axial + lateral + yaw;
@@ -158,6 +152,7 @@ public class MecanumDriveBasic extends LinearOpMode {
             lbd.setPower(leftBackPower);
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Karthik is really bad at driving" + runtime.toString());
+            telemetry.addData("gamepad contrller values", "%4.2f, %4.2f", axial, lateral, yaw);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
 
