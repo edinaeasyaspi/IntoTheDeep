@@ -91,7 +91,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  *  Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="GyroAuto` ", group="Robot")
+@Autonomous(name="GyroAuto ", group="Robot")
 //@Disabled
 public class GyroAuto extends LinearOpMode {
 
@@ -105,7 +105,7 @@ public class GyroAuto extends LinearOpMode {
     // These variable are declared here (as class members) so they can be updated in various methods,
     // but still be displayed by sendTelemetry()
     private double  targetHeading = 0;
-    private double  driveSpeed    = 1;
+    private double  driveSpeed    = 0.1;
     private double  turnSpeed     = 0.7;
     private double  leftSpeed     = 0.5;
     private double  rightSpeed    = 0.5;
@@ -126,7 +126,7 @@ public class GyroAuto extends LinearOpMode {
 
     // These constants define the desired driving/control characteristics
     // They can/should be tweaked to suit the specific robot drive train.
-    static final double     DRIVE_SPEED             = 0.1;    //Fast speed was 0.4 // Max driving speed for better distance accuracy.
+    static final double     DRIVE_SPEED             = 0.01;    //Fast speed was 0.4 // Max driving speed for better distance accuracy.
     static final double     TURN_SPEED              = 0.2;     // Max turn speed to limit turn rate.
     static final double     HEADING_THRESHOLD       = 0.01 ;    // How close must the heading get to the target before moving to next step.
     // Requiring more accuracy (a smaller number) will often make the turn take longer to get into the final position.
@@ -135,7 +135,7 @@ public class GyroAuto extends LinearOpMode {
     // Increase these numbers if the heading does not correct strongly enough (eg: a heavy robot or using tracks)
     // Decrease these numbers if the heading does not settle on the correct value (eg: very agile robot with omni wheels)
     static final double     P_TURN_GAIN            = 0.01;     // Larger is more responsive, but also less stable.
-    static final double     P_DRIVE_GAIN           = 0.01;     // Larger is more responsive, but also less stable.
+    static final double     P_DRIVE_GAIN           = 0.5;     // Larger is more responsive, but also less stable.
 
 
 
@@ -199,11 +199,12 @@ public class GyroAuto extends LinearOpMode {
         //          holdHeading() is used after turns to let the heading stabilize
         //          Add a sleep(2000) after any step to keep the telemetry data visible for review
 
-        driveStraight(DRIVE_SPEED, 24.0, 0.0);
+        driveStraight(0.2, 5.0, 51);
+
         sleep(1000);
 
         // Drive Forward 24"
-    //    turnToHeading( TURN_SPEED, -45.0);               // Turn  CW to -45 Degrees
+     turnToHeading( 0.1, -45);               // Turn  CW to -45 Degrees
   //      holdHeading( TURN_SPEED, -45.0, 0.5);   // Hold -45 Deg heading for a 1/2 second
 
 //        driveStraight(DRIVE_SPEED, 17.0, -45.0);  // Drive Forward 17" at -45 degrees (12"x and 12"y)
@@ -252,9 +253,9 @@ public class GyroAuto extends LinearOpMode {
             // Determine new target position, and pass to motor controller
             int moveCounts = (int)(distance * COUNTS_PER_INCH);
             lfdTarget = lfd.getCurrentPosition() + moveCounts;
-            lbdTarget = lbd.getCurrentPosition() +moveCounts;
+            lbdTarget = lbd.getCurrentPosition() + moveCounts;
             rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbdTarget = rbd.getTargetPosition() + moveCounts;
+            rbdTarget = rbd.getCurrentPosition() + moveCounts;
 
             // Set Target FIRST, then turn on RUN_TO_POSITION
             lfd.setTargetPosition(lfdTarget);
@@ -281,7 +282,7 @@ public class GyroAuto extends LinearOpMode {
 
                 // if driving in reverse, the motor correction also needs to be reversed
                 if (distance < 0)
-                    turnSpeed *= -1.0;
+                    turnSpeed *= -0.1;
 
                 // Apply the turning correction to the current driving speed.
                 moveRobot(driveSpeed, turnSpeed);
@@ -391,8 +392,8 @@ public class GyroAuto extends LinearOpMode {
         headingError = targetHeading - getHeading();
 
         // Normalize the error to be within +/- 180 degrees
-        while (headingError > 180)  headingError -= 360;
-        while (headingError <= -180) headingError += 360;
+        while (headingError > 12)  headingError -= 360;
+        while (headingError <= -12) headingError += 360;
 
         // Multiply the error by the gain to determine the required steering correction/  Limit the result to +/- 1.0
         return Range.clip(headingError * proportionalGain, -1, 1);
@@ -422,7 +423,7 @@ public class GyroAuto extends LinearOpMode {
 
             // Scale speeds down if either one exceeds +/- 1.0;
             double max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-            if (max > 1.0) {
+            if (max > 0.3) {
                 leftSpeed /= max;
                 rightSpeed /= max;
             }

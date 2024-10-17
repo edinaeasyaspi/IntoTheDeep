@@ -115,7 +115,7 @@ public class MecanumDriveBasic extends LinearOpMode {
 
 
 
-            if (max > 1.0) {
+            if (max > 0.5) {
                 leftFrontPower  /= max;
                 rightFrontPower /= max;
                 leftBackPower   /= max;
