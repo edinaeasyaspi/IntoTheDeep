@@ -1,42 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.PwmControl;
 
-/*
- * This file contains an example of a Linear "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode is executed.
- *
- * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
- * This code will work with either a Mecanum-Drive or an X-Drive train.
- * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
- * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
- *
- * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
- *
- * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
- * Each motion axis is controlled by one Joystick axis.
- *
- * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
- * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
- *
- * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
- * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
- * the direction of all 4 motors (see code below).
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
- */
 
-@TeleOp(name="Basic Mecanum Drive", group="Linear OpMode")
+import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
+
+
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Basic Mecanum Drive", group="Linear OpMode")
 //@Disabled
-public class MecanumDriveBasic extends LinearOpMode {
+public class TeleOp extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -45,7 +23,15 @@ public class MecanumDriveBasic extends LinearOpMode {
     private DcMotor rfd = null;
     private DcMotor rbd = null;
 
-//    private DcMotor liftMotor  = null;
+    public RobotHardware hardware = null;
+
+    //private DcMotor liftMotor = null;
+  //  private Servo clawRight, clawLeft, bar1left, bar1right = null;
+    //private CRServo armExtend = null;
+
+
+
+
 
     @Override
     public void runOpMode() {
@@ -56,6 +42,13 @@ public class MecanumDriveBasic extends LinearOpMode {
         lbd  = hardwareMap.get(DcMotor.class, "lbd");
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         rbd = hardwareMap.get(DcMotor.class, "rbd");
+        //liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+        //clawLeft = hardwareMap.get(Servo.class, "clawLeft");
+        //clawRight = hardwareMap.get(Servo.class, "clawRight");
+        //bar1left = hardwareMap.get(Servo.class, "bar1left");
+        //bar1Right = hardwareMap.get(Servo.class, "bar1right");
+        //armExtend = hardwareMap.get(CRServo.class, "armExtend");
+
 
 
 
@@ -76,6 +69,22 @@ public class MecanumDriveBasic extends LinearOpMode {
         rfd.setDirection(DcMotor.Direction.FORWARD);
         rbd.setDirection(DcMotor.Direction.FORWARD);
 
+
+        lfd.setZeroPowerBehavior(BRAKE);
+        lbd.setZeroPowerBehavior(BRAKE);
+        rbd.setZeroPowerBehavior(BRAKE);
+        rfd.setZeroPowerBehavior(BRAKE);
+     //   liftMotor.setZeroPowerBehavior(BRAKE);
+
+//       PwmControl[] otherServos = new PwmControl[]{
+//                ((PwmControl) clawRight),
+//                ((PwmControl) clawLeft),
+//                ((PwmControl) bar1left),
+//                ((PwmControl) bar1right),
+//                ((PwmControl) armExtend),
+//
+//        };
+
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -87,6 +96,9 @@ public class MecanumDriveBasic extends LinearOpMode {
         while (opModeIsActive()) {
 
             double max;
+            double powerLimit = 1;
+         //   double noLift = liftMotor.getCurrentPosition();
+         //   double liftPosition = noLift;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
@@ -109,7 +121,7 @@ public class MecanumDriveBasic extends LinearOpMode {
 
 
 
-            if (max > 0.5) {
+            if (max > 1) {
                 leftFrontPower  /= max;
                 rightFrontPower /= max;
                 leftBackPower   /= max;
@@ -117,26 +129,32 @@ public class MecanumDriveBasic extends LinearOpMode {
 
             }
 
-    /*        while (opModeIsActive()) {
-                if (gamepad2.right_bumper) {
-                    liftMotor.setPower(0.5);
-                    liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                    liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                } else {
-                    liftMotor.setPower(0);
-                }
 
-            }
 
-            // This is test code:
-            //
-            // Uncomment the following code to test your motor directions.
-            // Each button should make the corresponding motor run FORWARD.
-            //   1) First get all the motors to take to correct positions on the robot
-            //      by adjusting your Robot Configuration if necessary.
-            //   2) Then make sure they run in the correct direction by modifying the
-            //      the setDirection() calls above.
-            // Once the correct motors move in the correct direction re-comment this code.
+            if (gamepad1.a)
+                powerLimit = 1;
+            else
+                powerLimit = 0.5;
+
+
+            lfd.setPower(leftFrontPower * powerLimit);
+            lbd.setPower(leftBackPower * powerLimit);
+            rfd.setPower(rightFrontPower * powerLimit);
+            rbd.setPower(rightBackPower * powerLimit);
+
+ /*    if (gamepad2.dpad_up) {
+                            if (liftMotor.getCurrentPosition() < noLift + 750) {
+                                liftMotor.setPower(0.7);
+                                liftPosition = liftMotor.getCurrentPosition();
+                            }
+                        } else if (gamepad2.dpad_down) {
+                            liftMotor.setPower(-0.7);
+                            liftPosition = liftMotor.getCurrentPosition();
+                        } else {
+                            double y = liftMotor.getCurrentPosition() - liftPosition;
+                            liftMotor.setPower(y / 100);
+                        }
+
 
             /*
             leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
@@ -152,7 +170,7 @@ public class MecanumDriveBasic extends LinearOpMode {
             lbd.setPower(leftBackPower);
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Karthik is really bad at driving" + runtime.toString());
-            telemetry.addData("gamepad contrller values", "%4.2f, %4.2f", axial, lateral, yaw);
+            telemetry.addData("gamepad controller values", "%4.2f, %4.2f", axial, lateral, yaw);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
 
