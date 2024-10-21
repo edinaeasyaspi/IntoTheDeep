@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
 
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Basic Mecanum Drive", group="Linear OpMode")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="TeleOp", group="Linear OpMode")
 //@Disabled
 public class TeleOp extends LinearOpMode {
 
@@ -142,8 +142,8 @@ public class TeleOp extends LinearOpMode {
             rfd.setPower(rightFrontPower * powerLimit);
             rbd.setPower(rightBackPower * powerLimit);
 
- /*    if (gamepad2.dpad_up) {
-                            if (liftMotor.getCurrentPosition() < noLift + 750) {
+   /*  if (gamepad2.dpad_up) {
+                            if (liftMotor.getCurrentPosition()) {
                                 liftMotor.setPower(0.7);
                                 liftPosition = liftMotor.getCurrentPosition();
                             }
@@ -161,7 +161,7 @@ public class TeleOp extends LinearOpMode {
             leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
             rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
+            **/
 
             // Send calculated power to wheels
             lfd.setPower(leftFrontPower);

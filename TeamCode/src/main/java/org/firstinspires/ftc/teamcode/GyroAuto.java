@@ -137,6 +137,7 @@ public class GyroAuto extends LinearOpMode {
     static final double     P_TURN_GAIN            = 0.01;     // Larger is more responsive, but also less stable.
     static final double     P_DRIVE_GAIN           = 0.5;     // Larger is more responsive, but also less stable.
 
+    private ElapsedTime     runtime = new ElapsedTime();
 
 
     @Override
@@ -194,6 +195,9 @@ public class GyroAuto extends LinearOpMode {
         rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         imu.resetYaw();
 
+
+
+
         // Step through each leg of the path,
         // Notes:   Reverse movement is obtained by setting a negative distance (not speed)
         //          holdHeading() is used after turns to let the heading stabilize
@@ -201,10 +205,22 @@ public class GyroAuto extends LinearOpMode {
 
         driveStraight(0.2, 5.0, 51);
 
+
         sleep(1000);
 
         // Drive Forward 24"
-     turnToHeading( 0.1, -45);               // Turn  CW to -45 Degrees
+     turnToHeading( 0.1, -45);
+
+        lfd.setPower(0.5);
+        rbd.setPower(0.5);
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < 1.0)) {
+            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
+            telemetry.update();
+        }
+
+
+     // Turn  CW to -45 Degrees
   //      holdHeading( TURN_SPEED, -45.0, 0.5);   // Hold -45 Deg heading for a 1/2 second
 
 //        driveStraight(DRIVE_SPEED, 17.0, -45.0);  // Drive Forward 17" at -45 degrees (12"x and 12"y)
