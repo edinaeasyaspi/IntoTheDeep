@@ -37,10 +37,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /*
@@ -97,6 +99,7 @@ public class GyroAuto extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor         lfd, rfd, lbd, rbd  = null;
+    private DistanceSensor distanceSensor = null;
 
     private IMU             imu         = null;      // Control/Expansion Hub IMU
 
@@ -135,7 +138,10 @@ public class GyroAuto extends LinearOpMode {
     // Increase these numbers if the heading does not correct strongly enough (eg: a heavy robot or using tracks)
     // Decrease these numbers if the heading does not settle on the correct value (eg: very agile robot with omni wheels)
     static final double     P_TURN_GAIN            = 0.01;     // Larger is more responsive, but also less stable.
-    static final double     P_DRIVE_GAIN           = 0.5;     // Larger is more responsive, but also less stable.
+    static final double     P_DRIVE_GAIN           = 0.5;
+    static final double     POWER_LIMIT = 0.5;
+
+    // Larger is more responsive, but also less stable.
 
     private ElapsedTime     runtime = new ElapsedTime();
 
@@ -148,6 +154,8 @@ public class GyroAuto extends LinearOpMode {
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         lbd = hardwareMap.get(DcMotor.class, "lbd");
         rbd = hardwareMap.get(DcMotor.class,"rbd");
+        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -203,7 +211,12 @@ public class GyroAuto extends LinearOpMode {
         //          holdHeading() is used after turns to let the heading stabilize
         //          Add a sleep(2000) after any step to keep the telemetry data visible for review
 
-        driveStraight(0.2, 5.0, 51);
+        driveStraight(POWER_LIMIT, 5.0, 51);
+//        distanceSensor.getDistance(DistanceUnit.INCH);
+//
+//        if (distanceSensor.getDistance(DistanceUnit.INCH)> 5) {
+//        }
+
 
 
         sleep(1000);
@@ -342,7 +355,7 @@ public class GyroAuto extends LinearOpMode {
             turnSpeed = getSteeringCorrection(heading, P_TURN_GAIN);
 
             // Clip the speed to the maximum permitted value.
-            turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
+            turnSpeed = Range.clip(turnSpeed, -POWER_LIMIT, POWER_LIMIT);
 
             // Pivot in place by applying the turning correction
             moveRobot(0, turnSpeed);

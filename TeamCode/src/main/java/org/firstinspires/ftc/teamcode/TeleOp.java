@@ -3,10 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.util.Range;
 
 
 import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
@@ -23,11 +27,19 @@ public class TeleOp extends LinearOpMode {
     private DcMotor rfd = null;
     private DcMotor rbd = null;
 
-    public RobotHardware hardware = null;
+    public RobotHardware2 hw = null;
 
-    //private DcMotor liftMotor = null;
+
+    double clawOffset = 0;
+
+
+    private DcMotor liftMotor = null;
   //  private Servo clawRight, clawLeft, bar1left, bar1right = null;
-    //private CRServo armExtend = null;
+    private CRServo armExtend = null;
+    public static final double LIFT_POWER = 0.4;
+
+
+
 
 
 
@@ -42,12 +54,12 @@ public class TeleOp extends LinearOpMode {
         lbd  = hardwareMap.get(DcMotor.class, "lbd");
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         rbd = hardwareMap.get(DcMotor.class, "rbd");
-        //liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
-        //clawLeft = hardwareMap.get(Servo.class, "clawLeft");
-        //clawRight = hardwareMap.get(Servo.class, "clawRight");
-        //bar1left = hardwareMap.get(Servo.class, "bar1left");
-        //bar1Right = hardwareMap.get(Servo.class, "bar1right");
-        //armExtend = hardwareMap.get(CRServo.class, "armExtend");
+//        liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+//        clawLeft = hardwareMap.get(Servo.class, "clawLeft");
+//        clawRight = hardwareMap.get(Servo.class, "clawRight");
+//        bar1left = hardwareMap.get(Servo.class, "bar1left");
+//        bar1right = hardwareMap.get(Servo.class, "bar1right");
+//        armExtend = hardwareMap.get(CRServo.class, "armExtend");
 
 
 
@@ -74,22 +86,25 @@ public class TeleOp extends LinearOpMode {
         lbd.setZeroPowerBehavior(BRAKE);
         rbd.setZeroPowerBehavior(BRAKE);
         rfd.setZeroPowerBehavior(BRAKE);
-     //   liftMotor.setZeroPowerBehavior(BRAKE);
+    /*
+    liftMotor.setZeroPowerBehavior(BRAKE);
+       PwmControl[] otherServos = new PwmControl[]{
+                ((PwmControl) clawRight),
+                ((PwmControl) clawLeft),
+                ((PwmControl) bar1left),
+                ((PwmControl) bar1right),
+                ((PwmControl) armExtend),
 
-//       PwmControl[] otherServos = new PwmControl[]{
-//                ((PwmControl) clawRight),
-//                ((PwmControl) clawLeft),
-//                ((PwmControl) bar1left),
-//                ((PwmControl) bar1right),
-//                ((PwmControl) armExtend),
-//
-//        };
+        };
+ Wait for the game to start (driver presses START)
+*/
 
-        // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
+
+        ElapsedTime runtime = new ElapsedTime();
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
@@ -128,6 +143,59 @@ public class TeleOp extends LinearOpMode {
                 rightBackPower  /= max;
 
             }
+
+            //INTAKE and EXPEL
+//            if (gamepad1.right_bumper) {
+//               clawLeft.setPosition(1.0);
+//               clawRight.setPosition(-1.0);
+//            } else if (gamepad1.left_bumper) {
+//                clawLeft.setPosition(-1.0);
+//                clawRight.setPosition(1.0);
+//            }
+            //LIFT AND RETRACT SLIDES
+
+
+  /*          if (gamepad2.dpad_up) {
+                liftMotor.setPower(LIFT_POWER);
+                liftMotor.setZeroPowerBehavior(BRAKE);
+            } else if (gamepad2.dpad_down) {
+                liftMotor.setPower(-LIFT_POWER);
+                liftMotor.setZeroPowerBehavior(BRAKE);
+            } else liftMotor.setPower(0);
+
+            if (gamepad1.a) {
+               clawLeft.setPosition(1.0);
+               clawRight.setPosition(-1.0);
+            }
+
+
+
+
+
+
+
+            //OPEN AND CLOSE GRIPPER
+            if (gamepad1.right_bumper) {
+                clawLeft.setPosition(1.0);
+                clawRight.setPosition(-1.0);
+            } else if (gamepad1.left_bumper) {
+                clawLeft.setPosition(-1.0);
+                clawRight.setPosition(1.0);
+            }
+
+
+**/
+
+
+//    if (runtime.seconds() > 90 ) {
+//        bar1right.setPosition(1.0);
+       //     bar1left.setPosition(-1.0);
+ //   } else (bar1left, bar1right.LOCK)
+
+
+
+
+
 
 
 
@@ -172,8 +240,10 @@ public class TeleOp extends LinearOpMode {
             telemetry.addData("Status", "Karthik is really bad at driving" + runtime.toString());
             telemetry.addData("gamepad controller values", "%4.2f, %4.2f", axial, lateral, yaw);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+            telemetry.addData("Time", "runtime");
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
 
             telemetry.update();
         }
+
     }}
