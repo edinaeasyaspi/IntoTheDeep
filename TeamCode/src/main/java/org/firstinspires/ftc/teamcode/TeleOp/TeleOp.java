@@ -1,19 +1,14 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.util.Range;
 
-
-import org.firstinspires.ftc.robotcontroller.external.samples.RobotHardware;
+import org.firstinspires.ftc.teamcode.RobotHardware;
 
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="TeleOp", group="Linear OpMode")
@@ -27,7 +22,7 @@ public class TeleOp extends LinearOpMode {
     private DcMotor rfd = null;
     private DcMotor rbd = null;
 
-    public RobotHardware2 hw = null;
+    public RobotHardware hw = null;
 
 
     double clawOffset = 0;

@@ -4,7 +4,6 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.roadrunner.ftc.LynxFirmware;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
@@ -16,7 +15,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class RobotHardware2 {
+public class RobotHardware {
     //public final DistanceSensor distanceSensor;
     public final DcMotor lfd, lbd, rfd, rbd;
 
@@ -40,11 +39,11 @@ public class RobotHardware2 {
     public final Telemetry telemetry;
  //   public WebcamName LogitechC270_8034PI;
 
-    public RobotHardware2(HardwareMap hardwareMap) {
+    public RobotHardware(HardwareMap hardwareMap) {
         this(hardwareMap, null);
     }
 
-    public  RobotHardware2(HardwareMap hardwareMap, Telemetry telemetry) {
+    public RobotHardware(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
         LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 

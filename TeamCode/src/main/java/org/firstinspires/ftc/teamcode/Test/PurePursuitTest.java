@@ -1,15 +1,14 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Test;
 
-import static org.firstinspires.ftc.teamcode.MathFunctions.AngleWrap;
-import static org.firstinspires.ftc.teamcode.MathFunctions.lineCircleIntersection;
-import static org.firstinspires.ftc.teamcode.Robot.worldAngle_rad;
-import static org.firstinspires.ftc.teamcode.Robot.worldXPosition;
-import static org.firstinspires.ftc.teamcode.Robot.worldYPosition;
+import static org.firstinspires.ftc.teamcode.Test.MathFunctions.AngleWrap;
+import static org.firstinspires.ftc.teamcode.Test.MathFunctions.lineCircleIntersection;
+import static org.firstinspires.ftc.teamcode.Test.Robot.worldAngle_rad;
+import static org.firstinspires.ftc.teamcode.Test.Robot.worldXPosition;
+import static org.firstinspires.ftc.teamcode.Test.Robot.worldYPosition;
 
 
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.TestPurePursuit;
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
