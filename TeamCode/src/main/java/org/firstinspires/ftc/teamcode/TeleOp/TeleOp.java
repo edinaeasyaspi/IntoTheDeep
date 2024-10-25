@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
@@ -29,8 +30,8 @@ public class TeleOp extends LinearOpMode {
 
 
     private DcMotor liftMotor = null;
-  //  private Servo clawRight, clawLeft, bar1left, bar1right = null;
-    private CRServo armExtend = null;
+    private Servo clawRight, clawLeft = null;
+    private Servo armExtend = null;
     public static final double LIFT_POWER = 0.4;
 
 
@@ -50,11 +51,11 @@ public class TeleOp extends LinearOpMode {
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         rbd = hardwareMap.get(DcMotor.class, "rbd");
 //        liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
-//        clawLeft = hardwareMap.get(Servo.class, "clawLeft");
-//        clawRight = hardwareMap.get(Servo.class, "clawRight");
+        clawLeft = hardwareMap.get(Servo.class, "clawLeft");
+        clawRight = hardwareMap.get(Servo.class, "clawRight");
 //        bar1left = hardwareMap.get(Servo.class, "bar1left");
 //        bar1right = hardwareMap.get(Servo.class, "bar1right");
-//        armExtend = hardwareMap.get(CRServo.class, "armExtend");
+        armExtend = hardwareMap.get(Servo.class, "armExtend");
 
 
 
@@ -140,13 +141,20 @@ public class TeleOp extends LinearOpMode {
             }
 
             //INTAKE and EXPEL
-//            if (gamepad1.right_bumper) {
-//               clawLeft.setPosition(1.0);
-//               clawRight.setPosition(-1.0);
-//            } else if (gamepad1.left_bumper) {
-//                clawLeft.setPosition(-1.0);
-//                clawRight.setPosition(1.0);
-//            }
+            if (gamepad1.right_bumper) {
+
+               clawLeft.setPosition(0.3);
+               clawRight.setPosition(0.1);
+            } else if (gamepad1.left_bumper) {
+                clawLeft.setPosition(0.1);
+                clawRight.setPosition(0.3);
+            }
+
+            if (gamepad1.a) {
+                armExtend.setPosition(1.0);
+            } else if (gamepad1.b) {
+                armExtend.setPosition(0);
+            }
             //LIFT AND RETRACT SLIDES
 
 
@@ -195,9 +203,9 @@ public class TeleOp extends LinearOpMode {
 
 
             if (gamepad1.a)
-                powerLimit = 1;
-            else
                 powerLimit = 0.5;
+            else
+                powerLimit = 0.2;
 
 
             lfd.setPower(leftFrontPower * powerLimit);

@@ -66,9 +66,10 @@ public class PurePursuitTest {
 
         double relativeAngleToPoint = AngleWrap(absoluteAngleToTarget) - (worldAngle_rad - Math.toRadians(90));
 
-         double movement_x;
-         double movement_y;
-         double movement_turn;
+       double movement_turn;
+       double movement_x;
+       double movement_y;
+
 
        double relativeXToPoint = Math.cos(relativeAngleToPoint) * distanceToTarget;
        double relativeYToPoint = Math.sin(relativeAngleToPoint) * distanceToTarget;

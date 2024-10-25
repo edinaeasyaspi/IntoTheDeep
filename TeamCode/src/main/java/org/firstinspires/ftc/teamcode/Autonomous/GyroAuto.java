@@ -94,7 +94,7 @@ public class GyroAuto extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor         lfd, rfd, lbd, rbd  = null;
-    private DistanceSensor distanceSensor = null;
+  //  private DistanceSensor distanceSensor = null;
 
     private IMU             imu         = null;      // Control/Expansion Hub IMU
 
@@ -132,9 +132,9 @@ public class GyroAuto extends LinearOpMode {
     // We define one value when Turning (larger errors), and the other is used when Driving straight (smaller errors).
     // Increase these numbers if the heading does not correct strongly enough (eg: a heavy robot or using tracks)
     // Decrease these numbers if the heading does not settle on the correct value (eg: very agile robot with omni wheels)
-    static final double     P_TURN_GAIN            = 0.01;     // Larger is more responsive, but also less stable.
+    static final double     P_TURN_GAIN            = 1.0;     // Larger is more responsive, but also less stable.
     static final double     P_DRIVE_GAIN           = 0.5;
-    static final double     POWER_LIMIT = 0.5;
+    static final double     POWER_LIMIT = 0.1;
 
     // Larger is more responsive, but also less stable.
 
@@ -149,7 +149,7 @@ public class GyroAuto extends LinearOpMode {
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         lbd = hardwareMap.get(DcMotor.class, "lbd");
         rbd = hardwareMap.get(DcMotor.class,"rbd");
-        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+  //      distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
 
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -187,6 +187,7 @@ public class GyroAuto extends LinearOpMode {
 
         // Wait for the game to start (Display Gyro value while waiting)
         while (opModeInInit()) {
+            imu.resetYaw();
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
             telemetry.update();
         }
@@ -206,7 +207,7 @@ public class GyroAuto extends LinearOpMode {
         //          holdHeading() is used after turns to let the heading stabilize
         //          Add a sleep(2000) after any step to keep the telemetry data visible for review
 
-        driveStraight(POWER_LIMIT, 5.0, 51);
+        driveStraight(POWER_LIMIT, 5.0, 0);
 //        distanceSensor.getDistance(DistanceUnit.INCH);
 //
 //        if (distanceSensor.getDistance(DistanceUnit.INCH)> 5) {
@@ -217,15 +218,15 @@ public class GyroAuto extends LinearOpMode {
         sleep(1000);
 
         // Drive Forward 24"
-     turnToHeading( 0.1, -45);
+     //turnToHeading( 0.1, -45);
 
-        lfd.setPower(0.5);
-        rbd.setPower(0.5);
-        runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.0)) {
-            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
-            telemetry.update();
-        }
+//        lfd.setPower(0.5);
+//        rbd.setPower(0.5);
+//        runtime.reset();
+//        while (opModeIsActive() && (runtime.seconds() < 1.0)) {
+//            telemetry.addData("Path", "Leg 3: %4.1f S Elapsed", runtime.seconds());
+//            telemetry.update();
+//        }
 
 
      // Turn  CW to -45 Degrees

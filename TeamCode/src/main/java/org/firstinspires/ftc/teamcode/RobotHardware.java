@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.acmerobotics.roadrunner.ftc.LynxFirmware;
+//import com.acmerobotics.roadrunner.ftc.LynxFirmware;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
@@ -16,6 +17,8 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class RobotHardware {
+
+
     //public final DistanceSensor distanceSensor;
     public final DcMotor lfd, lbd, rfd, rbd;
 
@@ -45,7 +48,7 @@ public class RobotHardware {
 
     public RobotHardware(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
-        LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
+    //    LynxFirmware.throwIfModulesAreOutdated(hardwareMap);
 
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);

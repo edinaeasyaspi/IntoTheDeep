@@ -7,14 +7,14 @@ public class Robot {
 
 
     public Robot() {
-        worldXPosition = 50;
-        worldYPosition = 140;
+        worldXPosition = 0;
+        worldYPosition = 0;
         worldAngle_rad = Math.toRadians(-45);
     }
 
-    private double xSpeed = 0;
-    private double ySpeed = 0;
-    private double turnSpeed = 0;
+    private double xSpeed = 0.3;
+    private double ySpeed = 0.3;
+    private double turnSpeed = 0.3;
 
     public static double worldXPosition;
     public static double worldYPosition;
