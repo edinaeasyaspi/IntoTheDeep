@@ -29,9 +29,9 @@ public class TeleOp extends LinearOpMode {
     double clawOffset = 0;
 
 
-    private DcMotor liftMotor = null;
+//    private DcMotor liftMotor = null;
     private Servo clawRight, clawLeft = null;
-    private Servo armExtend = null;
+//    private Servo armExtend = null;
     public static final double LIFT_POWER = 0.4;
 
 
@@ -55,7 +55,7 @@ public class TeleOp extends LinearOpMode {
         clawRight = hardwareMap.get(Servo.class, "clawRight");
 //        bar1left = hardwareMap.get(Servo.class, "bar1left");
 //        bar1right = hardwareMap.get(Servo.class, "bar1right");
-        armExtend = hardwareMap.get(Servo.class, "armExtend");
+  //      armExtend = hardwareMap.get(Servo.class, "armExtend");
 
 
 
@@ -132,7 +132,7 @@ public class TeleOp extends LinearOpMode {
 
 
 
-            if (max > 1) {
+            if (max > 0.3) {
                 leftFrontPower  /= max;
                 rightFrontPower /= max;
                 leftBackPower   /= max;
@@ -144,17 +144,23 @@ public class TeleOp extends LinearOpMode {
             if (gamepad1.right_bumper) {
 
                clawLeft.setPosition(0.3);
-               clawRight.setPosition(0.1);
+               clawRight.setPosition(-0.5);
             } else if (gamepad1.left_bumper) {
-                clawLeft.setPosition(0.1);
-                clawRight.setPosition(0.3);
+                clawLeft.setPosition(-0.1);
+                clawRight.setPosition(-0.1);
             }
 
             if (gamepad1.a) {
-                armExtend.setPosition(1.0);
-            } else if (gamepad1.b) {
-                armExtend.setPosition(0);
+                clawLeft.setPosition(0.1);
+            } else if (gamepad1.b ) {
+                clawLeft.setPosition(-0.1);
             }
+
+//            if (gamepad1.a) {
+//           //     armExtend.setPosition(1.0);
+//            } else if (gamepad1.b) {
+//                armExtend.setPosition(0);
+//            }
             //LIFT AND RETRACT SLIDES
 
 
