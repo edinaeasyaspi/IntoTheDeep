@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
+import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.FLOAT;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.teamcode.Test.ArmExtendTest;
+import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
@@ -79,9 +82,9 @@ public class TeleOp extends LinearOpMode {
 
 
         lfd.setZeroPowerBehavior(BRAKE);
-        lbd.setZeroPowerBehavior(BRAKE);
-        rbd.setZeroPowerBehavior(BRAKE);
-        rfd.setZeroPowerBehavior(BRAKE);
+        lbd.setZeroPowerBehavior(FLOAT);
+        rbd.setZeroPowerBehavior(FLOAT);
+        rfd.setZeroPowerBehavior(FLOAT);
     /*
     liftMotor.setZeroPowerBehavior(BRAKE);
        PwmControl[] otherServos = new PwmControl[]{
@@ -106,8 +109,8 @@ public class TeleOp extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            double max;
-            double powerLimit = 1;
+
+            double powerLimit = 0.2;
          //   double noLift = liftMotor.getCurrentPosition();
          //   double liftPosition = noLift;
 
@@ -126,35 +129,38 @@ public class TeleOp extends LinearOpMode {
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
+            double max = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)),
+                    Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
 
-
-
-            if (max > 0.3) {
-                leftFrontPower  /= max;
+            if (max > 0.5) {
+                leftBackPower /= max;
+                rightBackPower /= max;
+                leftFrontPower /= max;
                 rightFrontPower /= max;
-                leftBackPower   /= max;
-                rightBackPower  /= max;
-
             }
+
+
+            // Set motor power
+            lfd.setPower(leftFrontPower);
+            lbd.setPower(leftBackPower);
+            rfd.setPower(rightFrontPower);
+            rbd.setPower(rightBackPower);
 
             //INTAKE and EXPEL
             if (gamepad1.right_bumper) {
-
-               clawLeft.setPosition(0.3);
-               clawRight.setPosition(-0.5);
-            } else if (gamepad1.left_bumper) {
-                clawLeft.setPosition(-0.1);
-                clawRight.setPosition(-0.1);
-            }
-
-            if (gamepad1.a) {
                 clawLeft.setPosition(0.1);
-            } else if (gamepad1.b ) {
-                clawLeft.setPosition(-0.1);
+                clawRight.setPosition(1);
             }
+
+            if (gamepad1.left_bumper) {
+                clawLeft.setPosition(0.3);
+                clawRight.setPosition(0.8);
+            }
+
+
+//            public void openClaw() {
+//                clawLeft.setPosition();
+//            }
 
 //            if (gamepad1.a) {
 //           //     armExtend.setPosition(1.0);
