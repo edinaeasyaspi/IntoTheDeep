@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import static java.lang.Math.PI;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -64,13 +66,14 @@ public class GyroAuto extends LinearOpMode {
     static final double DRIVE_GEAR_REDUCTION = 1.0 ;     // No External Gearing.
     static final double WHEEL_DIAMETER_INCHES = 3.78 ;     // For figuring circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * Math.PI);
-    static final double DRIVE_SPEED = 0.01;
-    static final double TURN_SPEED = 0.2;
-    static final double HEADING_THRESHOLD = 0.01 ;
+            (WHEEL_DIAMETER_INCHES * PI);
+
     static final double P_TURN_GAIN = 10;
     static final double P_DRIVE_GAIN = 0.001;
     static final double POWER_LIMIT = 0.1;
+
+
+    double wheelCircumference = WHEEL_DIAMETER_INCHES * Math.PI;
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -140,7 +143,7 @@ public class GyroAuto extends LinearOpMode {
         sleep (500);
         closeClaw();
         sleep(500);
-      // drive straight with the power limit a distance of 15
+
        // openClaw();
         //sleep(500);
         driveBackwards(0.6, 0, 40);
@@ -479,6 +482,9 @@ public class GyroAuto extends LinearOpMode {
 
     public void diagonalFrontLeft(double maxDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
+
+            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             // Determine new target position, and pass to motor controller
             int moveCounts = (int) (distance * COUNTS_PER_INCH);
             lfdTarget = (lfd.getCurrentPosition() + 0);
