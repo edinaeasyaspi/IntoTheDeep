@@ -3,11 +3,13 @@ package org.firstinspires.ftc.teamcode.Test;
 import static org.firstinspires.ftc.teamcode.Test.PurePursuitTest.followCurve;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.ArrayList;
 @Autonomous
+@Disabled
 public class TestPurePursuit extends OpMode {
 
     @Override

@@ -1,32 +1,3 @@
-/* Copyright (c) 2022 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import static java.lang.Math.PI;
@@ -34,28 +5,27 @@ import static java.lang.Math.PI;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
+
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="GyroAuto", group="Robot")
-public class GyroAuto extends LinearOpMode {
+@Autonomous(name="FarBaskPark", group="Robot")
+public class FarBaskPark extends LinearOpMode {
 
     /* Declare OpMode members. */
-    private DcMotor lfd, rfd, lbd, rbd, lift  = null;
+    private DcMotor lfd, rfd, lbd, rbd  = null;
     private IMU imu = null;
-    private Servo clawLeft, clawRight, swingLeft, swingRight = null;// Control/Expansion Hub IMU
-    private CRServo armExtend = null;
+    private Servo clawLeft, clawRight = null;// Control/Expansion Hub IMU
+
     private double headingError = 0;
     private double targetHeading = 0;
-    private double driveSpeed = 0.7;  // Set initial speed to 10%
-    private double turnSpeed = 0.6;
+    private double driveSpeed = 0.5;  // Set initial speed to 10%
+    private double turnSpeed = 0.4;
     private double  lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
     private double rbdSpeed = 0.5;
@@ -86,12 +56,8 @@ public class GyroAuto extends LinearOpMode {
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         lbd = hardwareMap.get(DcMotor.class, "lbd");
         rbd = hardwareMap.get(DcMotor.class, "rbd");
-        lift = hardwareMap.get(DcMotor.class, "lift");
         clawLeft = hardwareMap.get(Servo.class, "clawLeft");
         clawRight = hardwareMap.get(Servo.class, "clawRight");
-        swingLeft = hardwareMap.get(Servo.class, "swingLeft");
-        swingRight = hardwareMap.get(Servo.class, "swingRight");
-        armExtend = hardwareMap.get(CRServo.class, "armExtend");
 
         // Motor directions (adjust if needed)
         lfd.setDirection(DcMotor.Direction.REVERSE);
@@ -111,21 +77,16 @@ public class GyroAuto extends LinearOpMode {
         rfd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Set zero power behavior
         lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the game to start
         while (opModeInInit()) {
             imu.resetYaw();// Only reset the yaw once at the start
-            ServoThrottle thSwingLeft, thSwingRight;
-            thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-            thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
 
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
             telemetry.update();
@@ -136,53 +97,23 @@ public class GyroAuto extends LinearOpMode {
         lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         imu.resetYaw();
 
 
 
 
         closeClaw();
-     //   diagonalFrontLeft(0.5, 0, 10);
-       // diagonalFrontLeft(0.5, 0, 10);
-        driveStraight(0.7,  1, 0);
-        turnToHeading(0.6, 90);
-       // openClaw();
-        driveStraight(0.3, 30, 90);
-      //  strafeRight(0.7,0,40);
-//        turnToHeading(0.6,0);
-//        driveStraight(0.7, 5, 0);
+        driveStraight(0.7,  9, 0);
+        turnToHeading(0.6, -90);
+        turnToHeading(0.6, -90);
+        driveStraight(0.3, 35, -90);
+        turnToHeading(0.6, -90);
         openClaw();
         sleep (500);
-//        closeClaw();
-//        sleep(500);
-//
-//       // openClaw();
-//        //sleep(500);
-//        driveBackwards(0.6, 0, 40);
-//   //     resetGyro();
-//       openClaw();
-//       sleep(2000);
-//       driveStraight(0.4, 30.0, 90);
-//     //   turnToHeading(0.6, 180);
-      //  sleep(1000);
-  //      resetGyro();
-
-      //  openClaw();
-       // sleep(1000);
-    //    resetGyro();
-     //   driveStraight(0.4, 20,0);
- //       resetGyro();
-      //  driveStraight(0.5, 90, 0);
-      //  resetGyro();
-    //   strafeRight(0.1, 0, 7);
-    //   resetGyro();
-   //     driveBackwards(0.1, 0, 10);
 
 
 
-
-        telemetry.addData("Test Path", "Complete");
+        telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);  // Pause to display last telemetry message.
     }
@@ -249,54 +180,6 @@ public class GyroAuto extends LinearOpMode {
         }
     }
 
-    /**
-     *
-     * Arm swing to certain Pos
-     */
-
-    public void armSwingToBasket() {
-       ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
-        thSwingLeft.setTargetPos(0.1);
-        thSwingRight.setTargetPos(0.9);
-
-    }
-
-    /**
-     *
-     * Arm swing to specimen bar and arm extension
-     */
-
-    public void armExtendSpecSwing() {
-        armExtend.setPower(0.5);
-        sleep(1000);
-
-        lift.setTargetPosition(2000);
-        lift.setPower(0.5);
-
-        ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
-        thSwingLeft.setTargetPos(0.5);
-        thSwingRight.setTargetPos(0.5);
-
-    }
-
-
-    /**
-     *
-     * Fully retract slides and armExtension and turn the arm over to initPos();
-     */
-
-    public void retract() {
-        lift.setTargetPosition(0);
-        ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
-        thSwingLeft.setTargetPos(0.87);
-        thSwingRight.setTargetPos(0.13);
-    }
 
 
     /**
@@ -325,21 +208,8 @@ public class GyroAuto extends LinearOpMode {
                 headingDifference += 360;
             }
 
-
             double turnSpeed = headingDifference / P_TURN_GAIN;
-
-
-            double minTurnSpeed = 0.05;
-            if (Math.abs(turnSpeed) < minTurnSpeed) {
-                turnSpeed = Math.signum(turnSpeed) * minTurnSpeed;
-            }
-
-
-            turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
-
-
-            moveRobot(0, turnSpeed);
-            sendTelemetry(true);
+            double minTurnSpeed = 0.2;  // Minimum speed to avoid stalling
 
 
             while (opModeIsActive() && Math.abs(headingDifference) > 1) {
@@ -354,24 +224,28 @@ public class GyroAuto extends LinearOpMode {
                 }
 
 
-                turnSpeed = headingDifference / P_TURN_GAIN;
+                double decelerationFactor = Math.pow(Math.abs(headingDifference) / 180.0, 2);
+                turnSpeed = (headingDifference / P_TURN_GAIN) * decelerationFactor;
 
 
                 if (Math.abs(turnSpeed) < minTurnSpeed) {
                     turnSpeed = Math.signum(turnSpeed) * minTurnSpeed;
                 }
 
+
                 turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
+
 
                 moveRobot(0, turnSpeed);
                 sendTelemetry(true);
             }
 
-
+            
             moveRobot(0, 0);
             sendTelemetry(false);
         }
     }
+
 
     /**
      * Opening and closing the claw
@@ -510,7 +384,7 @@ public class GyroAuto extends LinearOpMode {
             lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-           rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // Start moving robot with slightly adjusted right-side motor power for balancing
             maxDriveSpeed = Math.abs(maxDriveSpeed);
@@ -544,20 +418,20 @@ public class GyroAuto extends LinearOpMode {
     public void diagonalFrontLeft(double maxDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
 
-//            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-//            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             // Determine new target position, and pass to motor controller
             int moveCounts = (int) (distance * COUNTS_PER_INCH);
-            lfd.setPower(0);
+            lfdTarget = (lfd.getCurrentPosition() + 0);
             lbdTarget = lbd.getCurrentPosition() + moveCounts;
             rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbd.setPower(0);
+            rbdTarget = (rbd.getCurrentPosition() + 0);
 
             // Set Target FIRST, then turn on RUN_TO_POSITION
-            lfd.setTargetPosition(0);
+            lfd.setTargetPosition(lfdTarget);
             lbd.setTargetPosition(lbdTarget);
             rfd.setTargetPosition(rfdTarget);
-            rbd.setTargetPosition(0);
+            rbd.setTargetPosition(rbdTarget);
 
             lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -668,5 +542,6 @@ public class GyroAuto extends LinearOpMode {
 
     }
 }
+
 
 

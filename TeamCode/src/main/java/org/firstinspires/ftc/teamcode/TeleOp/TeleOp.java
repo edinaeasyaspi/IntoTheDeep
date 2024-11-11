@@ -6,8 +6,11 @@ import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.FLOAT;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
+
 import org.firstinspires.ftc.teamcode.Test.ArmExtendTest;
 import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 
@@ -25,11 +28,16 @@ public class TeleOp extends LinearOpMode {
     private DcMotor lbd = null;
     private DcMotor rfd = null;
     private DcMotor rbd = null;
+    private DcMotor lift = null;
+    private CRServo armExtend = null;
+
+    private Servo swingLeft, swingRight;
 
     public RobotHardware hw = null;
 
 
     double clawOffset = 0;
+    double liftPos = 0;
 
 
 //    private DcMotor liftMotor = null;
@@ -53,12 +61,21 @@ public class TeleOp extends LinearOpMode {
         lbd  = hardwareMap.get(DcMotor.class, "lbd");
         rfd = hardwareMap.get(DcMotor.class, "rfd");
         rbd = hardwareMap.get(DcMotor.class, "rbd");
-//        liftMotor = hardwareMap.get(DcMotor.class, "liftMotor");
+        lift = hardwareMap.get(DcMotor.class, "lift");
         clawLeft = hardwareMap.get(Servo.class, "clawLeft");
         clawRight = hardwareMap.get(Servo.class, "clawRight");
+        swingLeft = hardwareMap.get(Servo.class, "swingLeft");
+        swingRight = hardwareMap.get(Servo.class, "swingRight");
+
+
 //        bar1left = hardwareMap.get(Servo.class, "bar1left");
 //        bar1right = hardwareMap.get(Servo.class, "bar1right");
-  //      armExtend = hardwareMap.get(Servo.class, "armExtend");
+       armExtend = hardwareMap.get(CRServo.class, "armExtend");
+
+        ServoThrottle thSwingLeft, thSwingRight;
+        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
+        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+
 
 
 
@@ -79,12 +96,15 @@ public class TeleOp extends LinearOpMode {
         lbd.setDirection(DcMotor.Direction.REVERSE);
         rfd.setDirection(DcMotor.Direction.FORWARD);
         rbd.setDirection(DcMotor.Direction.FORWARD);
+        lift.setDirection(DcMotorSimple.Direction.FORWARD);
+
 
 
         lfd.setZeroPowerBehavior(BRAKE);
-        lbd.setZeroPowerBehavior(FLOAT);
-        rbd.setZeroPowerBehavior(FLOAT);
-        rfd.setZeroPowerBehavior(FLOAT);
+        lbd.setZeroPowerBehavior(BRAKE);
+        rbd.setZeroPowerBehavior(BRAKE);
+        rfd.setZeroPowerBehavior(BRAKE);
+        lift.setZeroPowerBehavior(BRAKE);
     /*
     liftMotor.setZeroPowerBehavior(BRAKE);
        PwmControl[] otherServos = new PwmControl[]{
@@ -97,6 +117,8 @@ public class TeleOp extends LinearOpMode {
         };
  Wait for the game to start (driver presses START)
 */
+
+
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -118,6 +140,7 @@ public class TeleOp extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  gamepad1.right_stick_x;
+            // lift = gamepad2.dpad_up;
 
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
@@ -126,6 +149,7 @@ public class TeleOp extends LinearOpMode {
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower   = axial - lateral + yaw;
             double rightBackPower  = axial + lateral - yaw;
+        //    double liftPower = lift;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -140,23 +164,62 @@ public class TeleOp extends LinearOpMode {
             }
 
 
+
+
             // Set motor power
             lfd.setPower(leftFrontPower);
             lbd.setPower(leftBackPower);
             rfd.setPower(rightFrontPower);
             rbd.setPower(rightBackPower);
 
+            if (gamepad2.dpad_up) {
+                lift.setPower(0.7);
+            } else if (gamepad2.dpad_down) {
+                lift.setPower(-0.5);
+            } else {
+                lift.setPower(0);
+            }
+            if (gamepad2.a ) {
+                armExtend.setPower(-1);
+            } else if (gamepad2.b) {
+                armExtend.setPower(1);
+            } else {
+                armExtend.setPower(0);
+            }
+
+
+
+
+
             //INTAKE and EXPEL
+//            if (gamepad2.right_bumper) {
+//                clawLeft.setPosition(0.1);
+//                clawRight.setPosition(1);
+//            }
+//
+//            if (gamepad2.left_bumper) {
+//                clawLeft.setPosition(0.3);
+//                    clawRight.setPosition(0.8);
+//            }
             if (gamepad1.right_bumper) {
                 clawLeft.setPosition(0.1);
-                clawRight.setPosition(1);
+                clawRight.setPosition(0.5);
             }
-
             if (gamepad1.left_bumper) {
-                clawLeft.setPosition(0.3);
-                clawRight.setPosition(0.8);
+                clawLeft.setPosition(0.2);
+                clawRight.setPosition(0.4);
             }
 
+
+            if(gamepad2.right_trigger > 0.8){
+                thSwingLeft.setTargetPos(0.1);
+                thSwingRight.setTargetPos(0.9);
+            }
+
+            if (gamepad2.left_trigger>0.8) {
+                thSwingLeft.setTargetPos(0.87);
+                thSwingRight.setTargetPos(0.13);
+            }
 
 //            public void openClaw() {
 //                clawLeft.setPosition();
@@ -189,23 +252,9 @@ public class TeleOp extends LinearOpMode {
 
 
 
-            //OPEN AND CLOSE GRIPPER
-            if (gamepad1.right_bumper) {
-                clawLeft.setPosition(1.0);
-                clawRight.setPosition(-1.0);
-            } else if (gamepad1.left_bumper) {
-                clawLeft.setPosition(-1.0);
-                clawRight.setPosition(1.0);
-            }
-
-
 **/
 
 
-//    if (runtime.seconds() > 90 ) {
-//        bar1right.setPosition(1.0);
-       //     bar1left.setPosition(-1.0);
- //   } else (bar1left, bar1right.LOCK)
 
 
 
@@ -245,6 +294,9 @@ public class TeleOp extends LinearOpMode {
             rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             **/
+
+            thSwingLeft.run();
+            thSwingRight.run();
 
             // Send calculated power to wheels
             lfd.setPower(leftFrontPower);
