@@ -21,8 +21,8 @@ public class ArmExtendTest extends LinearOpMode {
          ElapsedTime     runtime = new ElapsedTime();
 
         ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 1.0);
+        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.0);
         
        
 

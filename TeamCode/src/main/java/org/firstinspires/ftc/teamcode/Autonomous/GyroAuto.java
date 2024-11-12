@@ -54,7 +54,7 @@ public class GyroAuto extends LinearOpMode {
     private CRServo armExtend = null;
     private double headingError = 0;
     private double targetHeading = 0;
-    private double driveSpeed = 0.7;  // Set initial speed to 10%
+    private double driveSpeed = 0.4;  // Set initial speed to 10%
     private double turnSpeed = 0.6;
     private double  lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
@@ -72,6 +72,8 @@ public class GyroAuto extends LinearOpMode {
     static final double P_TURN_GAIN = 10;
     static final double P_DRIVE_GAIN = 0.001;
     static final double POWER_LIMIT = 0.1;
+
+    ServoThrottle thSwingLeft, thSwingRight;
 
 
     double wheelCircumference = WHEEL_DIAMETER_INCHES * Math.PI;
@@ -123,9 +125,14 @@ public class GyroAuto extends LinearOpMode {
         // Wait for the game to start
         while (opModeInInit()) {
             imu.resetYaw();// Only reset the yaw once at the start
-            ServoThrottle thSwingLeft, thSwingRight;
-            thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-            thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+
+            thSwingLeft= new ServoThrottle(swingLeft, 0.9, 0.87);
+            thSwingRight = new ServoThrottle(swingRight, 0.9, 0.13);
+
+            thSwingLeft.setTargetPos(0.87);
+            thSwingRight.setTargetPos(0.13);
+
+            closeClaw();
 
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
             telemetry.update();
@@ -143,17 +150,21 @@ public class GyroAuto extends LinearOpMode {
 
 
         closeClaw();
+       // armExtendSpecSwing();
+//        stopExtending();
+      //  retract();
+        armSwingToBasket();
      //   diagonalFrontLeft(0.5, 0, 10);
-       // diagonalFrontLeft(0.5, 0, 10);
-        driveStraight(0.7,  1, 0);
-        turnToHeading(0.6, 90);
-       // openClaw();
-        driveStraight(0.3, 30, 90);
-      //  strafeRight(0.7,0,40);
-//        turnToHeading(0.6,0);
-//        driveStraight(0.7, 5, 0);
-        openClaw();
-        sleep (500);
+//       // diagonalFrontLeft(0.5, 0, 10);
+       driveStraight(0.7,  1, 0);
+//        turnToHeading(0.6, 90);
+//       // openClaw();
+//        driveStraight(0.3, 30, 90);
+//      //  strafeRight(0.7,0,40);
+////        turnToHeading(0.6,0);
+////        driveStraight(0.7, 5, 0);
+//        openClaw();
+//        sleep (500);
 //        closeClaw();
 //        sleep(500);
 //
@@ -255,12 +266,24 @@ public class GyroAuto extends LinearOpMode {
      */
 
     public void armSwingToBasket() {
-       ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+
+
         thSwingLeft.setTargetPos(0.1);
         thSwingRight.setTargetPos(0.9);
 
+        armExtend.setPower(-0.2);
+
+
+
+        thSwingLeft.run();
+        thSwingRight.run();
+
+        sleep(4000);
+
+    }
+
+    public void stopExtending() {
+        armExtend.setPower(0);
     }
 
     /**
@@ -269,17 +292,10 @@ public class GyroAuto extends LinearOpMode {
      */
 
     public void armExtendSpecSwing() {
-        armExtend.setPower(0.5);
-        sleep(1000);
+        armExtend.setPower(-0.5);
+        sleep(200);
 
-        lift.setTargetPosition(2000);
-        lift.setPower(0.5);
 
-        ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
-        thSwingLeft.setTargetPos(0.5);
-        thSwingRight.setTargetPos(0.5);
 
     }
 
@@ -290,12 +306,8 @@ public class GyroAuto extends LinearOpMode {
      */
 
     public void retract() {
-        lift.setTargetPosition(0);
-        ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
-        thSwingLeft.setTargetPos(0.87);
-        thSwingRight.setTargetPos(0.13);
+        armExtend.setPower(-1);
+        sleep(500);
     }
 
 

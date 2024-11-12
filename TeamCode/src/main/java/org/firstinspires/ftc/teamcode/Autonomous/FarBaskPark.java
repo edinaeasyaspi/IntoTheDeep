@@ -103,6 +103,7 @@ public class FarBaskPark extends LinearOpMode {
 
 
         closeClaw();
+
         driveStraight(0.7,  9, 0);
         turnToHeading(0.6, -90);
         turnToHeading(0.6, -90);
@@ -240,7 +241,7 @@ public class FarBaskPark extends LinearOpMode {
                 sendTelemetry(true);
             }
 
-            
+
             moveRobot(0, 0);
             sendTelemetry(false);
         }
@@ -418,47 +419,54 @@ public class FarBaskPark extends LinearOpMode {
     public void diagonalFrontLeft(double maxDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
 
-            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            // Determine new target position, and pass to motor controller
-            int moveCounts = (int) (distance * COUNTS_PER_INCH);
-            lfdTarget = (lfd.getCurrentPosition() + 0);
-            lbdTarget = lbd.getCurrentPosition() + moveCounts;
-            rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbdTarget = (rbd.getCurrentPosition() + 0);
 
-            // Set Target FIRST, then turn on RUN_TO_POSITION
+            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            rbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+
+            int moveCounts = (int) (distance * COUNTS_PER_INCH);
+
+
+            int lfdTarget = lfd.getCurrentPosition() + moveCounts;
+            int rbdTarget = rbd.getCurrentPosition() + moveCounts;
+
+
             lfd.setTargetPosition(lfdTarget);
-            lbd.setTargetPosition(lbdTarget);
-            rfd.setTargetPosition(rfdTarget);
             rbd.setTargetPosition(rbdTarget);
 
+
+            lbd.setPower(0);
+            rfd.setPower(0);
+
+
             lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            // Start moving robot with slightly adjusted right-side motor power for balancing
+
             maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0.05);  // Apply small correction to turn right if it's curving left
 
-            // Loop until all motors reach their target
-            while (opModeIsActive() && (rbd.isBusy() && lfd.isBusy() && rfd.isBusy() && lbd.isBusy())) {
-                // Adjust heading with proportional control
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
 
-                if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
+            moveRobot(maxDriveSpeed, 0);
 
-                moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
+
+            while (opModeIsActive() && (lfd.isBusy() && rbd.isBusy())) {
+
+                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+
+                moveRobot(maxDriveSpeed, turnSpeed);
+
                 sendTelemetry(true);
             }
 
-            // Stop all motion
+
             moveRobot(0, 0);
+
+
             lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
