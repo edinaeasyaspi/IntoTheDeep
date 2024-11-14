@@ -1,17 +1,22 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
-import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.FLOAT;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
 
-import org.firstinspires.ftc.teamcode.Test.ArmExtendTest;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.Autonomous.FarBaskPark;
+import com.qualcomm.robotcore.hardware.IMU;
+
+
 import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 
 
@@ -20,7 +25,7 @@ import org.firstinspires.ftc.teamcode.RobotHardware;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="TeleOp", group="Linear OpMode")
 //@Disabled
-public class TeleOp extends LinearOpMode {
+public class    DuoTeleOp extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -30,6 +35,7 @@ public class TeleOp extends LinearOpMode {
     private DcMotor rbd = null;
     private DcMotor lift = null;
     private CRServo armExtend = null;
+    private IMU imu = null;
 
     private Servo swingLeft, swingRight;
 
@@ -38,6 +44,8 @@ public class TeleOp extends LinearOpMode {
 
     double clawOffset = 0;
     double liftPos = 0;
+    double newLiftPos;
+    double armExtendSTAT;
 
 
 //    private DcMotor liftMotor = null;
@@ -52,8 +60,11 @@ public class TeleOp extends LinearOpMode {
 
 
 
+
+
     @Override
     public void runOpMode() {
+
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
@@ -66,11 +77,44 @@ public class TeleOp extends LinearOpMode {
         clawRight = hardwareMap.get(Servo.class, "clawRight");
         swingLeft = hardwareMap.get(Servo.class, "swingLeft");
         swingRight = hardwareMap.get(Servo.class, "swingRight");
+        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
+        RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+
 
 
 //        bar1left = hardwareMap.get(Servo.class, "bar1left");
 //        bar1right = hardwareMap.get(Servo.class, "bar1right");
        armExtend = hardwareMap.get(CRServo.class, "armExtend");
+
+        while (opModeInInit()) {
+            imu.resetYaw();
+            ServoThrottle thSwingLeft, thSwingRight;
+            thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
+            thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+
+            thSwingLeft.setTargetPos(0.87);
+            thSwingRight.setTargetPos(0.13);
+
+            clawLeft.setPosition(0.1);
+            clawRight.setPosition(1);
+
+            telemetry.addData(">", "Robot Heading = %4.0f");
+            telemetry.update();
+
+
+
+
+
+        }
+
+        
+
+
+
 
         ServoThrottle thSwingLeft, thSwingRight;
         thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
@@ -96,7 +140,7 @@ public class TeleOp extends LinearOpMode {
         lbd.setDirection(DcMotor.Direction.REVERSE);
         rfd.setDirection(DcMotor.Direction.FORWARD);
         rbd.setDirection(DcMotor.Direction.FORWARD);
-        lift.setDirection(DcMotorSimple.Direction.FORWARD);
+        lift.setDirection(DcMotor.Direction.FORWARD);
 
 
 
@@ -173,19 +217,44 @@ public class TeleOp extends LinearOpMode {
             rbd.setPower(rightBackPower);
 
             if (gamepad2.dpad_up) {
-                lift.setPower(0.7);
+
+              lift.setTargetPosition(2000);
+              lift.setPower(0.7);
+
+              thSwingLeft.setTargetPos(0.4);
+              thSwingRight.setTargetPos(0.6);
+
             } else if (gamepad2.dpad_down) {
+                if (lift.getCurrentPosition() > 750) {
+                    lift.setTargetPosition(750);
+                    lift.setPower(-0.4);
+                }
+                lift.setTargetPosition(750);
+                lift.setPower(0.6);
+
+                thSwingLeft.setTargetPos(0.87);
+                thSwingRight.setTargetPos(0.13);
+            } else if (gamepad2.dpad_right) {
+                lift.setTargetPosition(0);
                 lift.setPower(-0.5);
-            } else {
-                lift.setPower(0);
+
             }
             if (gamepad2.a ) {
+
                 armExtend.setPower(-1);
+                thSwingLeft.setTargetPos(0.8);
+                thSwingRight.setTargetPos(0.2);
             } else if (gamepad2.b) {
                 armExtend.setPower(1);
             } else {
                 armExtend.setPower(0);
             }
+
+
+
+
+
+
 
 
 

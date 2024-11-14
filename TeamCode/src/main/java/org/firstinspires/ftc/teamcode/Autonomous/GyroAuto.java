@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class GyroAuto extends LinearOpMode {
 
     /* Declare OpMode members. */
-    private DcMotor lfd, rfd, lbd, rbd, lift  = null;
+    private DcMotor lfd, rfd, lbd, rbd, lift = null;
     private IMU imu = null;
     private Servo clawLeft, clawRight, swingLeft, swingRight = null;// Control/Expansion Hub IMU
     private CRServo armExtend = null;
@@ -56,16 +56,17 @@ public class GyroAuto extends LinearOpMode {
     private double targetHeading = 0;
     private double driveSpeed = 0.4;  // Set initial speed to 10%
     private double turnSpeed = 0.6;
-    private double  lfdSpeed = 0.5;
+    private double diagDriveSpeed = 0.8;
+    private double lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
     private double rbdSpeed = 0.5;
     private double lbdSpeed = 0.5;
     private int lfdTarget, rfdTarget, rbdTarget, lbdTarget = 0;
 
     // Constants
-    static final double COUNTS_PER_MOTOR_REV = 537.6 ;  // Example motor encoder counts
-    static final double DRIVE_GEAR_REDUCTION = 1.0 ;     // No External Gearing.
-    static final double WHEEL_DIAMETER_INCHES = 3.78 ;     // For figuring circumference
+    static final double COUNTS_PER_MOTOR_REV = 537.6;  // Example motor encoder counts
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // No External Gearing.
+    static final double WHEEL_DIAMETER_INCHES = 3.78;     // For figuring circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * PI);
 
@@ -103,7 +104,7 @@ public class GyroAuto extends LinearOpMode {
 
         // Initialize IMU
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
-        RevHubOrientationOnRobot.UsbFacingDirection usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+        RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(orientationOnRobot));
@@ -126,7 +127,7 @@ public class GyroAuto extends LinearOpMode {
         while (opModeInInit()) {
             imu.resetYaw();// Only reset the yaw once at the start
 
-            thSwingLeft= new ServoThrottle(swingLeft, 0.9, 0.87);
+            thSwingLeft = new ServoThrottle(swingLeft, 0.9, 0.87);
             thSwingRight = new ServoThrottle(swingRight, 0.9, 0.13);
 
             thSwingLeft.setTargetPos(0.87);
@@ -147,16 +148,14 @@ public class GyroAuto extends LinearOpMode {
         imu.resetYaw();
 
 
-
-
         closeClaw();
-       // armExtendSpecSwing();
+        // armExtendSpecSwing();
 //        stopExtending();
-      //  retract();
+        //  retract();
         armSwingToBasket();
-     //   diagonalFrontLeft(0.5, 0, 10);
+        //   diagonalFrontLeft(0.5, 0, 10);
 //       // diagonalFrontLeft(0.5, 0, 10);
-       driveStraight(0.7,  1, 0);
+        driveStraight(0.7, 1, 0);
 //        turnToHeading(0.6, 90);
 //       // openClaw();
 //        driveStraight(0.3, 30, 90);
@@ -176,21 +175,19 @@ public class GyroAuto extends LinearOpMode {
 //       sleep(2000);
 //       driveStraight(0.4, 30.0, 90);
 //     //   turnToHeading(0.6, 180);
-      //  sleep(1000);
-  //      resetGyro();
+        //  sleep(1000);
+        //      resetGyro();
 
-      //  openClaw();
-       // sleep(1000);
-    //    resetGyro();
-     //   driveStraight(0.4, 20,0);
- //       resetGyro();
-      //  driveStraight(0.5, 90, 0);
-      //  resetGyro();
-    //   strafeRight(0.1, 0, 7);
-    //   resetGyro();
-   //     driveBackwards(0.1, 0, 10);
-
-
+        //  openClaw();
+        // sleep(1000);
+        //    resetGyro();
+        //   driveStraight(0.4, 20,0);
+        //       resetGyro();
+        //  driveStraight(0.5, 90, 0);
+        //  resetGyro();
+        //   strafeRight(0.1, 0, 7);
+        //   resetGyro();
+        //     driveBackwards(0.1, 0, 10);
 
 
         telemetry.addData("Test Path", "Complete");
@@ -200,7 +197,6 @@ public class GyroAuto extends LinearOpMode {
 
     /**
      * Reset IMU
-     *
      */
 
     public void resetGyro() {
@@ -211,15 +207,15 @@ public class GyroAuto extends LinearOpMode {
      * Drive in a straight line, on a fixed compass heading, based on encoder counts.
      *
      * @param maxDriveSpeed MAX Speed for forward/rev motion (range 0 to +1.0).
-     * @param distance Distance (in inches) to move from current position. Negative distance means move backward.
-     * @param heading Absolute Heading Angle (in Degrees) relative to last gyro reset.
+     * @param distance      Distance (in inches) to move from current position. Negative distance means move backward.
+     * @param heading       Absolute Heading Angle (in Degrees) relative to last gyro reset.
      */
 
 
     public void driveStraight(double maxDriveSpeed, double distance, double heading) {
         if (opModeIsActive()) {
             // Determine new target position, and pass to motor controller
-            int moveCounts = (int)(distance * COUNTS_PER_INCH);
+            int moveCounts = (int) (distance * COUNTS_PER_INCH);
             lfdTarget = lfd.getCurrentPosition() + moveCounts;
             lbdTarget = lbd.getCurrentPosition() + moveCounts;
             rfdTarget = rfd.getCurrentPosition() + moveCounts;
@@ -261,24 +257,26 @@ public class GyroAuto extends LinearOpMode {
     }
 
     /**
-     *
      * Arm swing to certain Pos
      */
 
     public void armSwingToBasket() {
 
+        {
+            thSwingLeft.setTargetPos(0.1);
+            thSwingRight.setTargetPos(0.9);
 
-        thSwingLeft.setTargetPos(0.1);
-        thSwingRight.setTargetPos(0.9);
+            thSwingLeft.run();
+            thSwingRight.run();
 
-        armExtend.setPower(-0.2);
+            sleep(2000);
+        }
+            armExtend.setPower(-1);
 
 
 
-        thSwingLeft.run();
-        thSwingRight.run();
 
-        sleep(4000);
+            sleep(750);
 
     }
 
@@ -306,8 +304,11 @@ public class GyroAuto extends LinearOpMode {
      */
 
     public void retract() {
-        armExtend.setPower(-1);
-        sleep(500);
+        armExtend.setPower(1);
+        sleep(750);
+
+        lift.setTargetPosition(0);
+        lift.setPower(0.7);
     }
 
 
@@ -553,7 +554,7 @@ public class GyroAuto extends LinearOpMode {
      * Drive diagonally front left
      */
 
-    public void diagonalFrontLeft(double maxDriveSpeed, double heading, double distance) {
+    public void diagonalFrontLeft(double maxDiagDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
 
 //            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -577,17 +578,17 @@ public class GyroAuto extends LinearOpMode {
             rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // Start moving robot with slightly adjusted right-side motor power for balancing
-            maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0.05);  // Apply small correction to turn right if it's curving left
+            maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
+            moveRobot(maxDiagDriveSpeed, 0.05);  // Apply small correction to turn right if it's curving left
 
             // Loop until all motors reach their target
             while (opModeIsActive() && (rbd.isBusy() && lfd.isBusy() && rfd.isBusy() && lbd.isBusy())) {
                 // Adjust heading with proportional control
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+       //         turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
 
-                if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
+           //     if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
 
-                moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
+                moveRobot(diagDriveSpeed, turnSpeed);  // Apply drive and turn adjustments
                 sendTelemetry(true);
             }
 

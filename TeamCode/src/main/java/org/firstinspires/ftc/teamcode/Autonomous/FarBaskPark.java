@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="FarBaskPark", group="Robot")
+@Autonomous(name="Far Side Basket Park ", group="Robot")
 public class FarBaskPark extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -86,6 +86,8 @@ public class FarBaskPark extends LinearOpMode {
 
         // Wait for the game to start
         while (opModeInInit()) {
+            clawLeft.setPosition(0.1);
+            clawRight.setPosition(0.5);
             imu.resetYaw();// Only reset the yaw once at the start
 
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
