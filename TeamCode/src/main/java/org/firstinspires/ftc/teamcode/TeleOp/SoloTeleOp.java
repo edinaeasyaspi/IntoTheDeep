@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="TeleOp", group="Linear OpMode")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="SoloTeleOp", group="Linear OpMode")
 //@Disabled
 public class SoloTeleOp extends LinearOpMode {
 

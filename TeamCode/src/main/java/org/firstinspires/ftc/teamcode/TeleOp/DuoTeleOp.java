@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="TeleOp", group="Linear OpMode")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="DuoTeleOp", group="Linear OpMode")
 //@Disabled
 public class    DuoTeleOp extends LinearOpMode {
 
@@ -111,7 +111,7 @@ public class    DuoTeleOp extends LinearOpMode {
 
         }
 
-        
+
 
 
 

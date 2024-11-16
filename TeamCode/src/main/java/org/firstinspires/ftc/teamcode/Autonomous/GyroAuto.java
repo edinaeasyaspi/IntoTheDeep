@@ -54,9 +54,9 @@ public class GyroAuto extends LinearOpMode {
     private CRServo armExtend = null;
     private double headingError = 0;
     private double targetHeading = 0;
-    private double driveSpeed = 0.4;  // Set initial speed to 10%
-    private double turnSpeed = 0.6;
-    private double diagDriveSpeed = 0.8;
+    private double driveSpeed = 0.6;  // Set initial speed to 10%
+    private double turnSpeed = 0.7;
+    private double diagDriveSpeed = 0.7;
     private double lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
     private double rbdSpeed = 0.5;
@@ -70,7 +70,7 @@ public class GyroAuto extends LinearOpMode {
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * PI);
 
-    static final double P_TURN_GAIN = 10;
+    static final double P_TURN_GAIN = 0.05;
     static final double P_DRIVE_GAIN = 0.001;
     static final double POWER_LIMIT = 0.1;
 
@@ -152,19 +152,31 @@ public class GyroAuto extends LinearOpMode {
         // armExtendSpecSwing();
 //        stopExtending();
         //  retract();
-        armSwingToBasket();
+  //      armSwingToBasket();
         //   diagonalFrontLeft(0.5, 0, 10);
-//       // diagonalFrontLeft(0.5, 0, 10);
-        driveStraight(0.7, 1, 0);
-//        turnToHeading(0.6, 90);
+       splineLeft(0.7, 0, 8);
+    //    driveStraight(0.7, 40, 90);
+        turnToHeading(0.1, 0);
+     //   driveBackwards(0.7, 0, 10);
 //       // openClaw();
-//        driveStraight(0.3, 30, 90);
+        driveStraight(0.1, 44, 0);
+
+    //    resetGyro();
 //      //  strafeRight(0.7,0,40);
-////        turnToHeading(0.6,0);
-////        driveStraight(0.7, 5, 0);
-//        openClaw();
+        turnToHeading(0.1,0);
+
+      //  driveBackwards(0.1, 0, 27);
+    //    strafeRight(0.1, 0, 40);
+        strafeRight(0.7, 0, 40);
+        turnToHeading(0.1, 0);
+   //     strafeLeft(0.7, 0, 25);
+        driveStraight(0.7, 0.5, 0);
+        openClaw();
+      //  driveStraight(0.1, 7, 0);
 //        sleep (500);
-//        closeClaw();
+        closeClaw();
+        driveBackwards(0.1, 0, 33);
+     //   strafeRight(0.7, 0, 5);
 //        sleep(500);
 //
 //       // openClaw();
@@ -407,16 +419,19 @@ public class GyroAuto extends LinearOpMode {
      *
      */
 
-    public void strafeLeft(double maxDriveSpeed, double heading, double distance) {
+    public void strafeRight(double maxDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
-            // Determine new target position, and pass to motor controller
+            // Determine new target position for the motors
             int moveCounts = (int)(distance * COUNTS_PER_INCH);
-            lfdTarget = lfd.getCurrentPosition() - moveCounts;
-            lbdTarget = lbd.getCurrentPosition() +  moveCounts;
-            rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbdTarget = rbd.getCurrentPosition() - moveCounts;
+            int negmoveCounts = (int)(-distance * COUNTS_PER_INCH);
 
-            // Set Target FIRST, then turn on RUN_TO_POSITION
+            // Set target positions for all four motors (left and right side)
+            lfdTarget = lfd.getCurrentPosition() + moveCounts;
+            lbdTarget = lbd.getCurrentPosition() + negmoveCounts;
+            rfdTarget = rfd.getCurrentPosition() + negmoveCounts;
+            rbdTarget = rbd.getCurrentPosition() + moveCounts;
+
+            // Set target positions FIRST, then enable RUN_TO_POSITION
             lfd.setTargetPosition(lfdTarget);
             lbd.setTargetPosition(lbdTarget);
             rfd.setTargetPosition(rfdTarget);
@@ -427,23 +442,31 @@ public class GyroAuto extends LinearOpMode {
             lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            // Start moving robot
+            // Start moving robot at constant speed (no turning correction initially)
             maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0);
+            moveRobot(maxDriveSpeed, 0);  // Move laterally, no turning initially
 
-            // Loop until all motors reach their target
+            // Loop until all motors reach their target position
             while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
-                // Adjust heading with proportional control
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+                // Calculate the steering correction (for heading correction if needed)
+                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
 
-                if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
+                // Apply turn correction only if the robot is not close to the target heading
+                if (Math.abs(turnSpeed) > 0.05) {  // Only apply turn correction if the heading error is large
+                    moveRobot(maxDriveSpeed, turnSpeed);  // Apply turn correction
+                } else {
+                    // Apply no turning if we're close to the target heading
+                    moveRobot(maxDriveSpeed, 0);  // Continue strafing without turning
+                }
 
-                moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
+                // Send telemetry for debugging
                 sendTelemetry(true);
             }
 
-            // Stop all motion
+            // Stop all motion when done
             moveRobot(0, 0);
+
+            // Set all motors to run using encoders after the movement
             lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -456,16 +479,19 @@ public class GyroAuto extends LinearOpMode {
      *
      */
 
-    public void strafeRight(double maxDriveSpeed, double heading, double distance) {
+    public void strafeLeft(double maxDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
-            // Determine new target position, and pass to motor controller
+            // Calculate the number of encoder counts needed for the distance
             int moveCounts = (int)(distance * COUNTS_PER_INCH);
-            lfdTarget = lfd.getCurrentPosition() + moveCounts;
-            lbdTarget = lbd.getCurrentPosition() -  moveCounts;
-            rfdTarget = rfd.getCurrentPosition() - moveCounts;
-            rbdTarget = rbd.getCurrentPosition() + moveCounts;
+            int negmoveCounts = (int)(-distance * COUNTS_PER_INCH);
 
-            // Set Target FIRST, then turn on RUN_TO_POSITION
+            // Set target positions for all four motors
+            lfdTarget = lfd.getCurrentPosition() + negmoveCounts;
+            lbdTarget = lbd.getCurrentPosition() + moveCounts;
+            rfdTarget = rfd.getCurrentPosition() + moveCounts;
+            rbdTarget = rbd.getCurrentPosition() + negmoveCounts;
+
+            // Set target positions FIRST, then enable RUN_TO_POSITION
             lfd.setTargetPosition(lfdTarget);
             lbd.setTargetPosition(lbdTarget);
             rfd.setTargetPosition(rfdTarget);
@@ -476,29 +502,38 @@ public class GyroAuto extends LinearOpMode {
             lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            // Start moving robot
+            // Start moving robot at constant speed
             maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0);
+            moveRobot(maxDriveSpeed, 0);  // Move laterally (no turning)
 
-            // Loop until all motors reach their target
+            // Loop until all motors reach their target positions
             while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
-                // Adjust heading with proportional control
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+                // Calculate the steering correction based on the current heading
+                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
 
-                if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
+                // Only apply turnSpeed if the error is significant (e.g., >5 degrees)
+                if (Math.abs(turnSpeed) > 0.05) {  // Only apply turn correction if the error is large
+                    moveRobot(maxDriveSpeed, turnSpeed);  // Apply correction to keep the robot straight
+                } else {
+                    moveRobot(maxDriveSpeed, 0);  // Continue strafing without turning
+                }
 
-                moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
-                sendTelemetry(true);
+                // Debugging telemetry
+                telemetry.addData("Turn Speed", turnSpeed);
+                telemetry.addData("Heading Error", turnSpeed);
             }
 
-            // Stop all motion
+            // Stop all motion when done
             moveRobot(0, 0);
+
+            // Set all motors to run using encoders after the movement
             lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
+
 
     /**
      *
@@ -554,53 +589,123 @@ public class GyroAuto extends LinearOpMode {
      * Drive diagonally front left
      */
 
-    public void diagonalFrontLeft(double maxDiagDriveSpeed, double heading, double distance) {
+    public void REVsplineLeft(double maxDiagDriveSpeed, double heading, double distance) {
         if (opModeIsActive()) {
 
-//            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-//            lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-            // Determine new target position, and pass to motor controller
-            int moveCounts = (int) (distance * COUNTS_PER_INCH);
+            // Ensure motors are set to FLOAT behavior
             lfd.setPower(0);
-            lbdTarget = lbd.getCurrentPosition() + moveCounts;
-            rfdTarget = rfd.getCurrentPosition() + moveCounts;
+            lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             rbd.setPower(0);
 
-            // Set Target FIRST, then turn on RUN_TO_POSITION
+            // Calculate target counts based on distance
+            int moveCounts = (int) (-distance * COUNTS_PER_INCH);
+
+            // Set target positions for the left and right motors
+            int lfdTarget = lbd.getCurrentPosition() + moveCounts;
+            int rbdTarget = rfd.getCurrentPosition() + moveCounts;
+
+            lbd.setTargetPosition(lfdTarget);
+            rfd.setTargetPosition(rbdTarget);
+
+            // Ensure lbd and rfd are stationary if that's the intention
             lfd.setTargetPosition(0);
-            lbd.setTargetPosition(lbdTarget);
-            rfd.setTargetPosition(rfdTarget);
             rbd.setTargetPosition(0);
 
+            // Set the motors to run to target positions
             lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            // Start moving robot with slightly adjusted right-side motor power for balancing
+            // Ensure positive maxDriveSpeed
             maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
-            moveRobot(maxDiagDriveSpeed, 0.05);  // Apply small correction to turn right if it's curving left
 
-            // Loop until all motors reach their target
-            while (opModeIsActive() && (rbd.isBusy() && lfd.isBusy() && rfd.isBusy() && lbd.isBusy())) {
-                // Adjust heading with proportional control
-       //         turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+            // Start moving the robot (no turning yet)
+            moveRobot(maxDiagDriveSpeed, 0);
 
-           //     if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
+            // Continue moving until all motors reach target positions
+            while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
+                // Update turnSpeed for steering correction
+                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
 
-                moveRobot(diagDriveSpeed, turnSpeed);  // Apply drive and turn adjustments
+                // Move robot with turn correction applied
+                moveRobot(maxDiagDriveSpeed, turnSpeed);
+
+                // Send telemetry data
                 sendTelemetry(true);
             }
 
-            // Stop all motion
+            // Stop robot when done
             moveRobot(0, 0);
+
+            // Switch all motors to encoder mode for future use
             lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
+
+
+    public void splineLeft(double maxDiagDriveSpeed, double heading, double distance) {
+        if (opModeIsActive()) {
+
+            // Ensure motors are set to FLOAT behavior
+            lfd.setPower(0);
+            lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rbd.setPower(0);
+
+            // Calculate target counts based on distance
+            int moveCounts = (int) (distance * COUNTS_PER_INCH);
+
+            // Set target positions for the left and right motors
+            int lfdTarget = lbd.getCurrentPosition() + moveCounts;
+            int rbdTarget = rfd.getCurrentPosition() + moveCounts;
+
+            lbd.setTargetPosition(lfdTarget);
+            rfd.setTargetPosition(rbdTarget);
+
+            // Ensure lbd and rfd are stationary if that's the intention
+            lfd.setTargetPosition(0);
+            rbd.setTargetPosition(0);
+
+            // Set the motors to run to target positions
+            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // Ensure positive maxDriveSpeed
+            maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
+
+            // Start moving the robot (no turning yet)
+            moveRobot(maxDiagDriveSpeed, 0);
+
+            // Continue moving until all motors reach target positions
+            while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
+                // Update turnSpeed for steering correction
+                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                // Move robot with turn correction applied
+                moveRobot(maxDiagDriveSpeed, turnSpeed);
+
+                // Send telemetry data
+                sendTelemetry(true);
+            }
+
+            // Stop robot when done
+            moveRobot(0, 0);
+
+            // Switch all motors to encoder mode for future use
+            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
 
 
 
@@ -615,8 +720,8 @@ public class GyroAuto extends LinearOpMode {
         targetHeading = desiredHeading;
         headingError = targetHeading - getHeading();
 
-        while (headingError > 12) headingError -= 360;
-        while (headingError <= -12) headingError += 360;
+        while (headingError > 5) headingError -= 360;
+        while (headingError <= -5) headingError += 360;
 
         return Range.clip(headingError * proportionalGain, -1, 1);
     }
@@ -633,6 +738,7 @@ public class GyroAuto extends LinearOpMode {
         lbdSpeed = drive -turn;
         rfdSpeed = drive + turn;
         rbdSpeed = drive +turn;
+        diagDriveSpeed = drive +- turn;
 
         // Scale down if either speed exceeds 1.0
         double max = Math.max(Math.max(Math.abs(lfdSpeed), Math.abs(rfdSpeed)),

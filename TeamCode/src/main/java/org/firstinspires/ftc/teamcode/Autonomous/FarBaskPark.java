@@ -24,7 +24,7 @@ public class FarBaskPark extends LinearOpMode {
 
     private double headingError = 0;
     private double targetHeading = 0;
-    private double driveSpeed = 0.5;  // Set initial speed to 10%
+    private double driveSpeed = 0.6;  // Set initial speed to 10%
     private double turnSpeed = 0.4;
     private double  lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
@@ -486,8 +486,8 @@ public class FarBaskPark extends LinearOpMode {
         targetHeading = desiredHeading;
         headingError = targetHeading - getHeading();
 
-        while (headingError > 12) headingError -= 360;
-        while (headingError <= -12) headingError += 360;
+        while (headingError > 5) headingError -= 360;
+        while (headingError <= -5) headingError += 360;
 
         return Range.clip(headingError * proportionalGain, -1, 1);
     }

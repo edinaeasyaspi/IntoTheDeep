@@ -16,15 +16,18 @@ public class ArmExtendTest extends LinearOpMode {
         Servo clawRight = hardwareMap.get(Servo.class, "clawRight");
     Servo swingLeft = hardwareMap.get(Servo.class, "swingLeft");
         Servo swingRight = hardwareMap.get(Servo.class, "swingRight");
-      //  DcMotor lift = hardwareMap.get(DcMotor.class, "lift");
+        DcMotor lift = hardwareMap.get(DcMotor.class, "lift");
 
          ElapsedTime     runtime = new ElapsedTime();
 
         ServoThrottle thSwingLeft, thSwingRight;
         thSwingLeft= new ServoThrottle(swingLeft, 0.82, 1.0);
         thSwingRight = new ServoThrottle(swingRight, 0.82, 0.0);
-        
-       
+        double noLift = lift.getCurrentPosition();
+        double liftPosition = noLift;
+
+
+
 
 
 
@@ -78,21 +81,21 @@ public class ArmExtendTest extends LinearOpMode {
                 if (gamepad1.y) {
                     swingLeft.setPosition(0);
                 }
-//                if (gamepad1.a) {
-//                    lift.setPower(0.5);
-//                            lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//
-//                } else if (gamepad1.b) {
-//                    lift.setPower(-0.5);
-//                    lift.setTargetPosition(2000);
-//                    lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//                } else
-//                    lift.setPower(0);
-                if (gamepad2.a) {
-                    swingRight.setPosition(0);
 
+            if (gamepad2.dpad_up) {
+                if (lift.getCurrentPosition() <  750) {
+                    lift.setPower(0.3);
+                    liftPosition = lift.getCurrentPosition();
                 }
-                if (gamepad2.y) {
+            } else if (gamepad2.dpad_down) {
+                lift.setPower(-0.3);
+                liftPosition = lift.getCurrentPosition();
+            } else {
+                double y = lift.getCurrentPosition() - liftPosition;
+                lift.setPower(y / 100);
+            }
+
+            if (gamepad2.y) {
                     swingRight.setPosition(1);
                 }
 
