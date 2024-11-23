@@ -26,6 +26,8 @@ public class ArmExtendTest extends LinearOpMode {
         double noLift = lift.getCurrentPosition();
         double liftPosition = noLift;
 
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
 
 
@@ -83,12 +85,14 @@ public class ArmExtendTest extends LinearOpMode {
                 }
 
             if (gamepad2.dpad_up) {
-                if (lift.getCurrentPosition() <  750) {
-                    lift.setPower(0.3);
+
+                    lift.setPower(0.5);
+               //    lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     liftPosition = lift.getCurrentPosition();
-                }
+
             } else if (gamepad2.dpad_down) {
-                lift.setPower(-0.3);
+                lift.setPower(-1);
+            //    lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 liftPosition = lift.getCurrentPosition();
             } else {
                 double y = lift.getCurrentPosition() - liftPosition;

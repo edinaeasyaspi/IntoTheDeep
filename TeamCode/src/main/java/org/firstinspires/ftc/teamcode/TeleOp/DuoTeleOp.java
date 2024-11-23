@@ -6,15 +6,9 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.Autonomous.FarBaskPark;
-import com.qualcomm.robotcore.hardware.IMU;
 
 
 import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
@@ -46,6 +40,7 @@ public class    DuoTeleOp extends LinearOpMode {
     double liftPos = 0;
     double newLiftPos;
     double armExtendSTAT;
+    double lifttarget = 666;
 
 
 //    private DcMotor liftMotor = null;
@@ -66,8 +61,6 @@ public class    DuoTeleOp extends LinearOpMode {
     public void runOpMode() {
 
 
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
         lfd  = hardwareMap.get(DcMotor.class, "lfd");
         lbd  = hardwareMap.get(DcMotor.class, "lbd");
         rfd = hardwareMap.get(DcMotor.class, "rfd");
@@ -86,21 +79,20 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
 
-//        bar1left = hardwareMap.get(Servo.class, "bar1left");
-//        bar1right = hardwareMap.get(Servo.class, "bar1right");
+
        armExtend = hardwareMap.get(CRServo.class, "armExtend");
 
         while (opModeInInit()) {
             imu.resetYaw();
             ServoThrottle thSwingLeft, thSwingRight;
-            thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-            thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+            thSwingLeft= new ServoThrottle(swingLeft, 1, 0.9);
+            thSwingRight = new ServoThrottle(swingRight, 1, 0.1);
 
             thSwingLeft.setTargetPos(0.87);
             thSwingRight.setTargetPos(0.13);
 
             clawLeft.setPosition(0.1);
-            clawRight.setPosition(1);
+            clawRight.setPosition(0.5);
 
             telemetry.addData(">", "Robot Heading = %4.0f");
             telemetry.update();
@@ -117,8 +109,8 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
         ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 0.82, 0.87);
-        thSwingRight = new ServoThrottle(swingRight, 0.82, 0.13);
+        thSwingLeft= new ServoThrottle(swingLeft, 1, 0.9);
+        thSwingRight = new ServoThrottle(swingRight, 1, 0.1);
 
 
 
@@ -126,21 +118,12 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
 
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+
         lfd.setDirection(DcMotor.Direction.REVERSE);
         lbd.setDirection(DcMotor.Direction.REVERSE);
         rfd.setDirection(DcMotor.Direction.FORWARD);
         rbd.setDirection(DcMotor.Direction.FORWARD);
-        lift.setDirection(DcMotor.Direction.FORWARD);
+
 
 
 
@@ -149,6 +132,12 @@ public class    DuoTeleOp extends LinearOpMode {
         rbd.setZeroPowerBehavior(BRAKE);
         rfd.setZeroPowerBehavior(BRAKE);
         lift.setZeroPowerBehavior(BRAKE);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setTargetPosition(0);
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift.setPower(1);
+
+
     /*
     liftMotor.setZeroPowerBehavior(BRAKE);
        PwmControl[] otherServos = new PwmControl[]{
@@ -172,163 +161,90 @@ public class    DuoTeleOp extends LinearOpMode {
         ElapsedTime runtime = new ElapsedTime();
         runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
+
         while (opModeIsActive()) {
 
+            ElapsedTime elapsedTime = new ElapsedTime();
 
+            double max;
             double powerLimit = 0.2;
-         //   double noLift = liftMotor.getCurrentPosition();
-         //   double liftPosition = noLift;
 
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+            ElapsedTime dropTimer = null;
+
+
+
+            double axial   = -gamepad1.left_stick_y;
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  gamepad1.right_stick_x;
-            // lift = gamepad2.dpad_up;
 
-
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
             double leftFrontPower  = axial + lateral + yaw;
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower   = axial - lateral + yaw;
             double rightBackPower  = axial + lateral - yaw;
-        //    double liftPower = lift;
 
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            double max = Math.max(Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower)),
-                    Math.max(Math.abs(leftBackPower), Math.abs(rightBackPower)));
+            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+            max = Math.max(max, Math.abs(leftBackPower));
+            max = Math.max(max, Math.abs(rightBackPower));
 
-            if (max > 0.5) {
+            if (max > 0.2) {
                 leftBackPower /= max;
                 rightBackPower /= max;
                 leftFrontPower /= max;
                 rightFrontPower /= max;
             }
 
-
-
-
-            // Set motor power
             lfd.setPower(leftFrontPower);
             lbd.setPower(leftBackPower);
             rfd.setPower(rightFrontPower);
             rbd.setPower(rightBackPower);
 
+
+
+
             if (gamepad2.dpad_up) {
+                lift.setTargetPosition(-7450);
+                lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-              lift.setTargetPosition(2000);
-              lift.setPower(0.7);
 
-              thSwingLeft.setTargetPos(0.4);
-              thSwingRight.setTargetPos(0.6);
 
             } else if (gamepad2.dpad_down) {
-                if (lift.getCurrentPosition() > 750) {
-                    lift.setTargetPosition(750);
-                    lift.setPower(-0.4);
-                }
-                lift.setTargetPosition(750);
-                lift.setPower(0.6);
-
-                thSwingLeft.setTargetPos(0.87);
-                thSwingRight.setTargetPos(0.13);
-            } else if (gamepad2.dpad_right) {
                 lift.setTargetPosition(0);
-                lift.setPower(-0.5);
+                lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }
 
+            if (gamepad2.dpad_right) {
+                lift.setTargetPosition(-2000);
+                lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             if (gamepad2.a ) {
 
                 armExtend.setPower(-1);
-                thSwingLeft.setTargetPos(0.8);
-                thSwingRight.setTargetPos(0.2);
+
             } else if (gamepad2.b) {
                 armExtend.setPower(1);
             } else {
                 armExtend.setPower(0);
             }
 
-
-
-
-
-
-
-
-
-
-
-            //INTAKE and EXPEL
-//            if (gamepad2.right_bumper) {
-//                clawLeft.setPosition(0.1);
-//                clawRight.setPosition(1);
-//            }
-//
-//            if (gamepad2.left_bumper) {
-//                clawLeft.setPosition(0.3);
-//                    clawRight.setPosition(0.8);
-//            }
-            if (gamepad1.right_bumper) {
+            if (gamepad2.right_bumper) {
                 clawLeft.setPosition(0.1);
                 clawRight.setPosition(0.5);
             }
-            if (gamepad1.left_bumper) {
+            if (gamepad2.left_bumper) {
                 clawLeft.setPosition(0.2);
                 clawRight.setPosition(0.4);
             }
 
 
             if(gamepad2.right_trigger > 0.8){
-                thSwingLeft.setTargetPos(0.1);
-                thSwingRight.setTargetPos(0.9);
+                thSwingLeft.setTargetPos(0.9);
+                thSwingRight.setTargetPos(0.1);
             }
 
             if (gamepad2.left_trigger>0.8) {
-                thSwingLeft.setTargetPos(0.87);
-                thSwingRight.setTargetPos(0.13);
+                thSwingLeft.setTargetPos(0.2);
+                thSwingRight.setTargetPos(0.8);
             }
-
-//            public void openClaw() {
-//                clawLeft.setPosition();
-//            }
-
-//            if (gamepad1.a) {
-//           //     armExtend.setPosition(1.0);
-//            } else if (gamepad1.b) {
-//                armExtend.setPosition(0);
-//            }
-            //LIFT AND RETRACT SLIDES
-
-
-  /*          if (gamepad2.dpad_up) {
-                liftMotor.setPower(LIFT_POWER);
-                liftMotor.setZeroPowerBehavior(BRAKE);
-            } else if (gamepad2.dpad_down) {
-                liftMotor.setPower(-LIFT_POWER);
-                liftMotor.setZeroPowerBehavior(BRAKE);
-            } else liftMotor.setPower(0);
-
-            if (gamepad1.a) {
-               clawLeft.setPosition(1.0);
-               clawRight.setPosition(-1.0);
-            }
-
-
-
-
-
-
-
-**/
-
-
-
-
-
-
-
 
 
 
@@ -343,41 +259,24 @@ public class    DuoTeleOp extends LinearOpMode {
             rfd.setPower(rightFrontPower * powerLimit);
             rbd.setPower(rightBackPower * powerLimit);
 
-   /*  if (gamepad2.dpad_up) {
-                            if (liftMotor.getCurrentPosition()) {
-                                liftMotor.setPower(0.7);
-                                liftPosition = liftMotor.getCurrentPosition();
-                            }
-                        } else if (gamepad2.dpad_down) {
-                            liftMotor.setPower(-0.7);
-                            liftPosition = liftMotor.getCurrentPosition();
-                        } else {
-                            double y = liftMotor.getCurrentPosition() - liftPosition;
-                            liftMotor.setPower(y / 100);
-                        }
-
-
-            /*
-            leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            **/
 
             thSwingLeft.run();
             thSwingRight.run();
 
-            // Send calculated power to wheels
+
             lfd.setPower(leftFrontPower);
             rfd.setPower(rightFrontPower);
             rbd.setPower(rightBackPower);
             lbd.setPower(leftBackPower);
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Karthik is really bad at driving" + runtime.toString());
+
+
+            telemetry.addData("Status", "Robot is moving" + runtime.toString());
             telemetry.addData("gamepad controller values", "%4.2f, %4.2f", axial, lateral, yaw);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Time", "runtime");
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Lift", lift.getCurrentPosition());
+        //    telemetry.addData("Lift Power", "%4.2f, %4.2f", liftPos);
 
             telemetry.update();
         }

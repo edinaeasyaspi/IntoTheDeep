@@ -149,58 +149,29 @@ public class GyroAuto extends LinearOpMode {
 
 
         closeClaw();
-        // armExtendSpecSwing();
-//        stopExtending();
-        //  retract();
-  //      armSwingToBasket();
-        //   diagonalFrontLeft(0.5, 0, 10);
-       splineLeft(0.7, 0, 8);
-    //    driveStraight(0.7, 40, 90);
-        turnToHeading(0.1, 0);
-     //   driveBackwards(0.7, 0, 10);
-//       // openClaw();
-        driveStraight(0.1, 44, 0);
 
-    //    resetGyro();
-//      //  strafeRight(0.7,0,40);
-        turnToHeading(0.1,0);
+        armExtendSpecSwing();
 
-      //  driveBackwards(0.1, 0, 27);
-    //    strafeRight(0.1, 0, 40);
-        strafeRight(0.7, 0, 40);
-        turnToHeading(0.1, 0);
-   //     strafeLeft(0.7, 0, 25);
-        driveStraight(0.7, 0.5, 0);
-        openClaw();
-      //  driveStraight(0.1, 7, 0);
-//        sleep (500);
-        closeClaw();
-        driveBackwards(0.1, 0, 33);
-     //   strafeRight(0.7, 0, 5);
-//        sleep(500);
+//       splineLeft(0.7, 0, 8);
 //
-//       // openClaw();
-//        //sleep(500);
-//        driveBackwards(0.6, 0, 40);
-//   //     resetGyro();
-//       openClaw();
-//       sleep(2000);
-//       driveStraight(0.4, 30.0, 90);
-//     //   turnToHeading(0.6, 180);
-        //  sleep(1000);
-        //      resetGyro();
-
-        //  openClaw();
-        // sleep(1000);
-        //    resetGyro();
-        //   driveStraight(0.4, 20,0);
-        //       resetGyro();
-        //  driveStraight(0.5, 90, 0);
-        //  resetGyro();
-        //   strafeRight(0.1, 0, 7);
-        //   resetGyro();
-        //     driveBackwards(0.1, 0, 10);
-
+//        turnToHeading(0.1, 0);
+//
+//        driveStraight(0.1, 44, 0);
+//
+//        turnToHeading(0.1,0);
+//
+//
+//        strafeRight(0.7, 0, 40);
+//        turnToHeading(0.1, 0);
+//
+//        driveStraight(0.7, 0.5, 0);
+//        openClaw();
+//
+//        closeClaw();
+//        driveBackwards(0.1, 0, 33);
+//        driveStraight(0.7, 33, 0 );
+//        strafeRight(0.7, 0, 5);
+//
 
         telemetry.addData("Test Path", "Complete");
         telemetry.update();
@@ -294,6 +265,8 @@ public class GyroAuto extends LinearOpMode {
 
     public void stopExtending() {
         armExtend.setPower(0);
+
+
     }
 
     /**
@@ -302,8 +275,11 @@ public class GyroAuto extends LinearOpMode {
      */
 
     public void armExtendSpecSwing() {
-        armExtend.setPower(-0.5);
-        sleep(200);
+        armExtend.setPower(-1);
+        sleep(900);
+
+        thSwingLeft.setTargetPos(0.5);
+        thSwingRight.setTargetPos(0.5);
 
 
 
