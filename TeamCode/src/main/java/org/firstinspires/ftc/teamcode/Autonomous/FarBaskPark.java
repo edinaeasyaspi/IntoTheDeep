@@ -1,16 +1,19 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 import static java.lang.Math.PI;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -20,17 +23,19 @@ public class FarBaskPark extends LinearOpMode {
     /* Declare OpMode members. */
     private DcMotor lfd, rfd, lbd, rbd  = null;
     private IMU imu = null;
-    private Servo clawLeft, clawRight = null;// Control/Expansion Hub IMU
+    private Servo clawLeft, clawRight = null;
+    private CRServo armExtend = null;// Control/Expansion Hub I
 
     private double headingError = 0;
     private double targetHeading = 0;
     private double driveSpeed = 0.6;  // Set initial speed to 10%
-    private double turnSpeed = 0.4;
+    private double turnSpeed = 0.3;
     private double  lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
     private double rbdSpeed = 0.5;
     private double lbdSpeed = 0.5;
     private int lfdTarget, rfdTarget, rbdTarget, lbdTarget = 0;
+    private Servo swingLeft, swingRight;
 
     // Constants
     static final double COUNTS_PER_MOTOR_REV = 537.6 ;  // Example motor encoder counts
@@ -43,7 +48,7 @@ public class FarBaskPark extends LinearOpMode {
     static final double P_DRIVE_GAIN = 0.001;
     static final double POWER_LIMIT = 0.1;
 
-
+    ServoThrottle thSwingLeft, thSwingRight;
     double wheelCircumference = WHEEL_DIAMETER_INCHES * Math.PI;
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -58,6 +63,11 @@ public class FarBaskPark extends LinearOpMode {
         rbd = hardwareMap.get(DcMotor.class, "rbd");
         clawLeft = hardwareMap.get(Servo.class, "clawLeft");
         clawRight = hardwareMap.get(Servo.class, "clawRight");
+        swingLeft = hardwareMap.get(Servo.class, "swingLeft");
+        swingRight = hardwareMap.get(Servo.class, "swingRight");
+        armExtend = hardwareMap.get(CRServo.class, "armExtend");
+   //     lift = hardwareMap.get(DcMotor.class, "lift");
+
 
         // Motor directions (adjust if needed)
         lfd.setDirection(DcMotor.Direction.REVERSE);
@@ -77,6 +87,11 @@ public class FarBaskPark extends LinearOpMode {
         rfd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+      //  lift.setZeroPowerBehavior(BRAKE);
+       // lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        lift.setTargetPosition(0);
+//        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        lift.setPower(1);
 
         // Set zero power behavior
         lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -84,10 +99,23 @@ public class FarBaskPark extends LinearOpMode {
         lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+
+
+
         // Wait for the game to start
         while (opModeInInit()) {
             clawLeft.setPosition(0.1);
             clawRight.setPosition(0.5);
+
+
+
+            thSwingLeft = new ServoThrottle(swingLeft, 0.9, 0.7);
+            thSwingRight = new ServoThrottle(swingRight, 0.9, 0.3);
+
+//            thSwingLeft.setTargetPos(0.7);
+//            thSwingRight.setTargetPos(0.3);
+
+
             imu.resetYaw();// Only reset the yaw once at the start
 
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
@@ -99,20 +127,20 @@ public class FarBaskPark extends LinearOpMode {
         lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+   //     lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         imu.resetYaw();
 
 
+  closeClaw();
+  driveStraight(0.7, 7, 0);
+  turnToHeading(0.7, 90);
+  driveBackwards(0.7, 90, 40);
+  turnToHeading(0.7, -90);
 
 
-        closeClaw();
 
-        driveStraight(0.7,  9, 0);
-        turnToHeading(0.6, -90);
-        turnToHeading(0.6, -90);
-        driveStraight(0.3, 35, -90);
-        turnToHeading(0.6, -90);
-        openClaw();
-        sleep (500);
+
+
 
 
 
@@ -127,8 +155,9 @@ public class FarBaskPark extends LinearOpMode {
      */
 
     public void resetGyro() {
+        if (opModeIsActive()) {
         imu.resetYaw();
-    }
+    }}
 
     /**
      * Drive in a straight line, on a fixed compass heading, based on encoder counts.
@@ -255,16 +284,11 @@ public class FarBaskPark extends LinearOpMode {
      *
      */
 
-    public void openClaw() {
-        clawLeft.setPosition(0.3);
-        clawRight.setPosition(0.8);
-
-    }
-
     public void closeClaw() {
         clawLeft.setPosition(0.1);
         clawRight.setPosition(1);
     }
+
 
     /**
      * Strafing left and right
@@ -486,8 +510,8 @@ public class FarBaskPark extends LinearOpMode {
         targetHeading = desiredHeading;
         headingError = targetHeading - getHeading();
 
-        while (headingError > 5) headingError -= 360;
-        while (headingError <= -5) headingError += 360;
+        while (headingError > 12) headingError -= 360;
+        while (headingError <= -12) headingError += 360;
 
         return Range.clip(headingError * proportionalGain, -1, 1);
     }
@@ -515,6 +539,9 @@ public class FarBaskPark extends LinearOpMode {
             lbdSpeed /= max;
             rbdSpeed /= max;
         }
+
+        thSwingLeft.run();
+        thSwingRight.run();
 
 
         // Set motor power
