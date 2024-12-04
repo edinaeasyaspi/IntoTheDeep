@@ -28,7 +28,6 @@
  */
 
 package org.firstinspires.ftc.teamcode.Autonomous;
-
 import static java.lang.Math.PI;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -39,12 +38,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
+
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="GyroAuto", group="Robot")
+@Autonomous(name = "CloseNetPreload1", group = "Robot")
 public class GyroAuto extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -55,7 +56,7 @@ public class GyroAuto extends LinearOpMode {
     private double headingError = 0;
     private double targetHeading = 0;
     private double driveSpeed = 0.6;  // Set initial speed to 10%
-    private double turnSpeed = 0.7;
+    private double turnSpeed = 0.5;
     private double diagDriveSpeed = 0.7;
     private double lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
@@ -83,6 +84,7 @@ public class GyroAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+
 
         // Initialize hardware
         lfd = hardwareMap.get(DcMotor.class, "lfd");
@@ -115,653 +117,721 @@ public class GyroAuto extends LinearOpMode {
         lbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setTargetPosition(0);
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift.setPower(1);
 
         // Set zero power behavior
-        lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        //  lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the game to start
         while (opModeInInit()) {
             imu.resetYaw();// Only reset the yaw once at the start
 
-            thSwingLeft = new ServoThrottle(swingLeft, 0.9, 0.87);
-            thSwingRight = new ServoThrottle(swingRight, 0.9, 0.13);
+            thSwingLeft = new ServoThrottle(swingLeft, 0.9, 0.7);
+            thSwingRight = new ServoThrottle(swingRight, 0.9, 0.3);
 
-            thSwingLeft.setTargetPos(0.87);
-            thSwingRight.setTargetPos(0.13);
+            thSwingLeft.setTargetPos(0.7);
+            thSwingRight.setTargetPos(0.3);
+            lift.setTargetPosition(0);
 
-            closeClaw();
+             closeClaw();
 
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
             telemetry.update();
         }
-
-        // Set encoders to RUN_USING_ENCODER mode
-        lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        imu.resetYaw();
+        waitForStart();
 
 
-        closeClaw();
-
-        armExtendSpecSwing();
-
-//       splineLeft(0.7, 0, 8);
-//
-//        turnToHeading(0.1, 0);
-//
-//        driveStraight(0.1, 44, 0);
-//
-//        turnToHeading(0.1,0);
-//
-//
-//        strafeRight(0.7, 0, 40);
-//        turnToHeading(0.1, 0);
-//
-//        driveStraight(0.7, 0.5, 0);
-//        openClaw();
-//
-//        closeClaw();
-//        driveBackwards(0.1, 0, 33);
-//        driveStraight(0.7, 33, 0 );
-//        strafeRight(0.7, 0, 5);
-//
-
-        telemetry.addData("Test Path", "Complete");
-        telemetry.update();
-        sleep(1000);  // Pause to display last telemetry message.
-    }
-
-    /**
-     * Reset IMU
-     */
-
-    public void resetGyro() {
-        imu.resetYaw();
-    }
-
-    /**
-     * Drive in a straight line, on a fixed compass heading, based on encoder counts.
-     *
-     * @param maxDriveSpeed MAX Speed for forward/rev motion (range 0 to +1.0).
-     * @param distance      Distance (in inches) to move from current position. Negative distance means move backward.
-     * @param heading       Absolute Heading Angle (in Degrees) relative to last gyro reset.
-     */
 
 
-    public void driveStraight(double maxDriveSpeed, double distance, double heading) {
-        if (opModeIsActive()) {
-            // Determine new target position, and pass to motor controller
-            int moveCounts = (int) (distance * COUNTS_PER_INCH);
-            lfdTarget = lfd.getCurrentPosition() + moveCounts;
-            lbdTarget = lbd.getCurrentPosition() + moveCounts;
-            rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbdTarget = rbd.getCurrentPosition() + moveCounts;
+            // Set encoders to RUN_USING_ENCODER mode
+//        lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        imu.resetYaw();
 
-            // Set Target FIRST, then turn on RUN_TO_POSITION
-            lfd.setTargetPosition(lfdTarget);
-            lbd.setTargetPosition(lbdTarget);
-            rfd.setTargetPosition(rfdTarget);
-            rbd.setTargetPosition(rbdTarget);
 
-            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Start moving robot
-            maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0);
-
-            // Loop until all motors reach their target
-            while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
-                // Adjust heading with proportional control
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-
-                if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
-
-                moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
-                sendTelemetry(true);
-            }
-
-            // Stop all motion
-            moveRobot(0, 0);
-            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-    /**
-     * Arm swing to certain Pos
-     */
-
-    public void armSwingToBasket() {
-
-        {
-            thSwingLeft.setTargetPos(0.1);
-            thSwingRight.setTargetPos(0.9);
-
-            thSwingLeft.run();
-            thSwingRight.run();
-
+            closeClaw();
+            strafeLeft(1, 0, 5);
+            driveBackwards(1, 0, 15);
+            liftUp();
+            turnToHeading(1, 40);
+            turnToHeading(1, 40);
+            //turnToHeading(0.6, 40);
+            armSwingToBasket();
+            sleep(1000);
+            openClaw();
+            returnArm();
+            //    liftDown();
+          //  sleep(4000);
+            resetGyro();
+            turnToHeading(0.6, 45);
+            //  strafeRight(0.7, 90, 7);
+            armMedPos();
+            resetGyro();
+           // strafeLeft(0.7, 0, 10);
+            driveStraight(0.7, 17, 0);
+        //    armExtendSpecSwing();
+         //   sleep(1000);
+            returnArm();
+            closeClaw();
+            driveBackwards(0.7, 0, 11);
+            turnToHeading(0.7, -40);
+            //   liftUp();
+            armSwingToBasket();
             sleep(2000);
+            openClaw();
+            returnArm();
+            // liftDown();
+
+            telemetry.addData("Test Path", "Complete");
+            telemetry.update();
+            sleep(1000);  // Pause to display last telemetry message.
         }
-            armExtend.setPower(-1);
 
 
-
-
-            sleep(750);
-
-    }
-
-    public void stopExtending() {
-        armExtend.setPower(0);
-
-
-    }
-
-    /**
-     *
-     * Arm swing to specimen bar and arm extension
-     */
-
-    public void armExtendSpecSwing() {
-        armExtend.setPower(-1);
-        sleep(900);
-
-        thSwingLeft.setTargetPos(0.5);
-        thSwingRight.setTargetPos(0.5);
-
-
-
-    }
 
 
     /**
-     *
-     * Fully retract slides and armExtension and turn the arm over to initPos();
-     */
+             * Reset IMU
+             */
 
-    public void retract() {
-        armExtend.setPower(1);
-        sleep(750);
+            public void resetGyro () {
+                if (opModeIsActive()) {
+                imu.resetYaw();
+            }}
 
-        lift.setTargetPosition(0);
-        lift.setPower(0.7);
-    }
+            /**
+             * Drive in a straight line, on a fixed compass heading, based on encoder counts.
+             *
+             * @param maxDriveSpeed MAX Speed for forward/rev motion (range 0 to +1.0).
+             * @param distance      Distance (in inches) to move from current position. Negative distance means move backward.
+             * @param heading       Absolute Heading Angle (in Degrees) relative to last gyro reset.
+             */
 
 
-    /**
-     * Turn the robot to a specified heading.
-     *
-     * @param maxTurnSpeed Desired MAX speed of turn (range 0 to +1.0).
-     * @param heading Absolute Heading Angle (in Degrees) relative to last gyro reset.
-     */
+            public void driveStraight ( double maxDriveSpeed, double distance, double heading){
+                if (opModeIsActive()) {
+                    // Determine new target position, and pass to motor controller
+                    int moveCounts = (int) (distance * COUNTS_PER_INCH);
+                    lfdTarget = lfd.getCurrentPosition() + moveCounts;
+                    lbdTarget = lbd.getCurrentPosition() + moveCounts;
+                    rfdTarget = rfd.getCurrentPosition() + moveCounts;
+                    rbdTarget = rbd.getCurrentPosition() + moveCounts;
+
+                    // Set Target FIRST, then turn on RUN_TO_POSITION
+                    lfd.setTargetPosition(lfdTarget);
+                    lbd.setTargetPosition(lbdTarget);
+                    rfd.setTargetPosition(rfdTarget);
+                    rbd.setTargetPosition(rbdTarget);
+
+                    lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    // Start moving robot
+                    maxDriveSpeed = Math.abs(maxDriveSpeed);
+                    moveRobot(maxDriveSpeed, 0);
+
+                    // Loop until all motors reach their target
+                    while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
+                        // Adjust heading with proportional control
+                        turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                        if (distance < 0)
+                            turnSpeed *= -0.1;  // Reverse correction if moving backward
+
+                        moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
+                        sendTelemetry(true);
+                    }
+
+                    // Stop all motion
+                    moveRobot(0, 0);
+                    lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
+            }
+
+            /**
+             * Arm swing to certain Pos
+             */
+
+            public void armSwingToBasket () {
+                if (opModeIsActive()) {
+
+                ServoThrottle thSwingLeft, thSwingRight;
+                thSwingLeft = new ServoThrottle(swingLeft, 1, 1);
+                thSwingRight = new ServoThrottle(swingRight, 1, 0);
+
+
+                thSwingLeft.setTargetPos(0.1);
+                thSwingRight.setTargetPos(0.9);
+
+                ElapsedTime t = new ElapsedTime();
+                while (t.seconds() < 1) {
+                    thSwingLeft.run();
+                    thSwingRight.run();
+                }}
+
+            }
+
+
+            public void returnArm () {
+                if (opModeIsActive()) {
+                    ServoThrottle thSwingLeft, thSwingRight;
+                    thSwingLeft = new ServoThrottle(swingLeft, 1, 1);
+                    thSwingRight = new ServoThrottle(swingRight, 1, 0);
+
+
+                    thSwingLeft.setTargetPos(0.7);
+                    thSwingRight.setTargetPos(0.3);
+
+                    ElapsedTime t = new ElapsedTime();
+                    while (t.seconds() < 1) {
+                        thSwingLeft.run();
+                        thSwingRight.run();
+                    }
+                }
+
+            }
+            public void liftDown () {
+                if (opModeIsActive()) {
+                    lift.setTargetPosition(0);
+                    lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+            }
+            public void liftUp () {
+                if (opModeIsActive()) {
+                lift.setTargetPosition(-7450);
+                lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            }}
+
+            public void armMedPos () {
+                if (opModeIsActive()) {
+                    ServoThrottle thSwingLeft, thSwingRight;
+                    thSwingLeft = new ServoThrottle(swingLeft, 1, 1);
+                    thSwingRight = new ServoThrottle(swingRight, 1, 0);
+
+
+                    thSwingLeft.setTargetPos(0.6);
+                    thSwingRight.setTargetPos(0.4);
+
+                    ElapsedTime t = new ElapsedTime();
+                    while (t.seconds() < 1) {
+                        thSwingLeft.run();
+                        thSwingRight.run();
+                    }
+                }
+            }
+
+
+            /**
+             * Arm swing to specimen bar and arm extension
+             */
+
+            public void armExtendSpecSwing () {
+                if (opModeIsActive()) {
+                    armExtend.setPower(-1);
+                    sleep(300);
+
+                }
+            }
+
+
+            /**
+             * Fully retract slides and armExtension and turn the arm over to initPos();
+             */
+
+            public void retract () {
+                if (opModeIsActive()) {
+                    armExtend.setPower(1);
+                    sleep(750);
+                }
+
+            }
+
+
+            /**
+             * Turn the robot to a specified heading.
+             *
+             * @param maxTurnSpeed Desired MAX speed of turn (range 0 to +1.0).
+             * @param heading Absolute Heading Angle (in Degrees) relative to last gyro reset.
+             */
 //
+
+            /**
+             * Turns the robot to a specific heading using the shortest path.
+             *
+             * @param maxTurnSpeed Maximum turn speed (range -1.0 to 1.0).
+             * @param heading      Target heading in degrees.
+             */
+            public void turnToHeading(double maxTurnSpeed, double heading) {
+                if (opModeIsActive()) {
+                    double currentHeading = getHeading();
+                    double headingDifference = heading - currentHeading;
+
+                    // Normalize heading difference to [-180, 180]
+                    if (headingDifference > 180) {
+                        headingDifference -= 360;
+                    } else if (headingDifference < -180) {
+                        headingDifference += 360;
+                    }
+
+                    // PID constants (these values need to be tuned for your robot)
+                    double Kp = 0.02;   // Proportional constant
+                    double Ki = 0.001;  // Integral constant
+                    double Kd = 0.01;   // Derivative constant
+
+                    // PID variables
+                    double error = headingDifference;
+                    double integral = 0;
+                    double previousError = 0;
+                    double derivative = 0;
+
+                    // Minimum turn speed threshold
+                    double minTurnSpeed = 0.05;
+
+                    while (opModeIsActive() && Math.abs(error) > 1) {
+                        currentHeading = getHeading();
+                        headingDifference = heading - currentHeading;
+
+                        // Normalize heading difference to [-180, 180]
+                        if (headingDifference > 180) {
+                            headingDifference -= 360;
+                        } else if (headingDifference < -180) {
+                            headingDifference += 360;
+                        }
+
+                        // Calculate the PID error
+                        error = headingDifference;
+                        integral += error;   // Accumulate error
+                        derivative = error - previousError;  // Change in error
+                        previousError = error;  // Update previous error
+
+                        // Calculate the PID output
+                        double pidOutput = (Kp * error) + (Ki * integral) + (Kd * derivative);
+
+                        // Apply minimum turn speed threshold
+                        if (Math.abs(pidOutput) < minTurnSpeed) {
+                            pidOutput = Math.signum(pidOutput) * minTurnSpeed;
+                        }
+
+                        // Clip the turn speed to be within the range of -maxTurnSpeed to maxTurnSpeed
+                        pidOutput = Range.clip(pidOutput, -maxTurnSpeed, maxTurnSpeed);
+
+                        // Move the robot based on the PID output
+                        moveRobot(0, pidOutput);
+
+                        // Send telemetry for debugging
+                        sendTelemetry(true);
+                    }
+
+                    // Stop the robot after reaching the desired heading
+                    moveRobot(0, 0);
+                    sendTelemetry(false);
+                }
+            }
+
+
     /**
-     * Turns the robot to a specific heading using the shortest path.
-     *
-     * @param maxTurnSpeed Maximum turn speed (range -1.0 to 1.0).
-     * @param heading Target heading in degrees.
-     */
-    public void turnToHeading(double maxTurnSpeed, double heading) {
-        if (opModeIsActive()) {
+             * Opening and closing the claw
+             */
 
-            double currentHeading = getHeading();
-            double headingDifference = heading - currentHeading;
+            public void openClaw () {
+                if (opModeIsActive()) {
+                    clawLeft.setPosition(0.2);
+                    clawRight.setPosition(0.4);
+                }
+            }
 
+            public void closeClaw () {
+                if (opModeIsActive()) {
+                clawLeft.setPosition(0.1);
+                clawRight.setPosition(1);
+            }}
 
-            if (headingDifference > 180) {
-                headingDifference -= 360;
-            } else if (headingDifference < -180) {
-                headingDifference += 360;
+            /**
+             * Strafing left and right
+             */
+
+            public void strafeRight ( double maxDriveSpeed, double heading, double distance){
+                if (opModeIsActive()) {
+                    // Determine new target position for the motors
+                    int moveCounts = (int) (distance * COUNTS_PER_INCH);
+                    int negmoveCounts = (int) (-distance * COUNTS_PER_INCH);
+
+                    // Set target positions for all four motors (left and right side)
+                    lfdTarget = lfd.getCurrentPosition() + moveCounts;
+                    lbdTarget = lbd.getCurrentPosition() + negmoveCounts;
+                    rfdTarget = rfd.getCurrentPosition() + negmoveCounts;
+                    rbdTarget = rbd.getCurrentPosition() + moveCounts;
+
+                    // Set target positions FIRST, then enable RUN_TO_POSITION
+                    lfd.setTargetPosition(lfdTarget);
+                    lbd.setTargetPosition(lbdTarget);
+                    rfd.setTargetPosition(rfdTarget);
+                    rbd.setTargetPosition(rbdTarget);
+
+                    lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    // Start moving robot at constant speed (no turning correction initially)
+                    maxDriveSpeed = Math.abs(maxDriveSpeed);
+                    moveRobot(maxDriveSpeed, 0);  // Move laterally, no turning initially
+
+                    // Loop until all motors reach their target position
+                    while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
+                        // Calculate the steering correction (for heading correction if needed)
+                        double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                        // Apply turn correction only if the robot is not close to the target heading
+                        if (Math.abs(turnSpeed) > 0.05) {  // Only apply turn correction if the heading error is large
+                            moveRobot(maxDriveSpeed, turnSpeed);  // Apply turn correction
+                        } else {
+                            // Apply no turning if we're close to the target heading
+                            moveRobot(maxDriveSpeed, 0);  // Continue strafing without turning
+                        }
+
+                        // Send telemetry for debugging
+                        sendTelemetry(true);
+                    }
+
+                    // Stop all motion when done
+                    moveRobot(0, 0);
+
+                    // Set all motors to run using encoders after the movement
+                    lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
+            }
+
+            /**
+             * Strafing right
+             */
+
+            public void strafeLeft ( double maxDriveSpeed, double heading, double distance){
+                if (opModeIsActive()) {
+                    // Calculate the number of encoder counts needed for the distance
+                    int moveCounts = (int) (distance * COUNTS_PER_INCH);
+                    int negmoveCounts = (int) (-distance * COUNTS_PER_INCH);
+
+                    // Set target positions for all four motors
+                    lfdTarget = lfd.getCurrentPosition() + negmoveCounts;
+                    lbdTarget = lbd.getCurrentPosition() + moveCounts;
+                    rfdTarget = rfd.getCurrentPosition() + moveCounts;
+                    rbdTarget = rbd.getCurrentPosition() + negmoveCounts;
+
+                    // Set target positions FIRST, then enable RUN_TO_POSITION
+                    lfd.setTargetPosition(lfdTarget);
+                    lbd.setTargetPosition(lbdTarget);
+                    rfd.setTargetPosition(rfdTarget);
+                    rbd.setTargetPosition(rbdTarget);
+
+                    lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    // Start moving robot at constant speed
+                    maxDriveSpeed = Math.abs(maxDriveSpeed);
+                    moveRobot(maxDriveSpeed, 0);  // Move laterally (no turning)
+
+                    // Loop until all motors reach their target positions
+                    while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
+                        // Calculate the steering correction based on the current heading
+                        double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                        // Only apply turnSpeed if the error is significant (e.g., >5 degrees)
+                        if (Math.abs(turnSpeed) > 0.05) {  // Only apply turn correction if the error is large
+                            moveRobot(maxDriveSpeed, turnSpeed);  // Apply correction to keep the robot straight
+                        } else {
+                            moveRobot(maxDriveSpeed, 0);  // Continue strafing without turning
+                        }
+
+                        // Debugging telemetry
+                        telemetry.addData("Turn Speed", turnSpeed);
+                        telemetry.addData("Heading Error", turnSpeed);
+                    }
+
+                    // Stop all motion when done
+                    moveRobot(0, 0);
+
+                    // Set all motors to run using encoders after the movement
+                    lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
             }
 
 
-            double turnSpeed = headingDifference / P_TURN_GAIN;
+            /**
+             * Drive backwards
+             */
 
+            public void driveBackwards ( double maxDriveSpeed, double heading, double distance){
+                if (opModeIsActive()) {
+                    // Determine new target position, and pass to motor controller
+                    int moveCounts = (int) (-distance * COUNTS_PER_INCH);
+                    lfdTarget = lfd.getCurrentPosition() + moveCounts;
+                    lbdTarget = lbd.getCurrentPosition() + moveCounts;
+                    rfdTarget = rfd.getCurrentPosition() + moveCounts;
+                    rbdTarget = rbd.getCurrentPosition() + moveCounts;
 
-            double minTurnSpeed = 0.05;
-            if (Math.abs(turnSpeed) < minTurnSpeed) {
-                turnSpeed = Math.signum(turnSpeed) * minTurnSpeed;
+                    // Set Target FIRST, then turn on RUN_TO_POSITION
+                    lfd.setTargetPosition(lfdTarget);
+                    lbd.setTargetPosition(lbdTarget);
+                    rfd.setTargetPosition(rfdTarget);
+                    rbd.setTargetPosition(rbdTarget);
+
+                    lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    // Start moving robot with slightly adjusted right-side motor power for balancing
+                    maxDriveSpeed = Math.abs(maxDriveSpeed);
+                    moveRobot(maxDriveSpeed, 0.05);  // Apply small correction to turn right if it's curving left
+
+                    // Loop until all motors reach their target
+                    while (opModeIsActive() && (rbd.isBusy() && lfd.isBusy() && rfd.isBusy() && lbd.isBusy())) {
+                        // Adjust heading with proportional control
+                        turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                        if (distance < 0)
+                            turnSpeed *= -0.1;  // Reverse correction if moving backward
+
+                        moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
+                        sendTelemetry(true);
+                    }
+
+                    // Stop all motion
+                    moveRobot(0, 0);
+                    lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
+            }
+
+            /**
+             * Drive diagonally front left
+             */
+
+            public void REVsplineLeft ( double maxDiagDriveSpeed, double heading, double distance){
+                if (opModeIsActive()) {
+
+                    // Ensure motors are set to FLOAT behavior
+                    lfd.setPower(0);
+                    lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    rbd.setPower(0);
+
+                    // Calculate target counts based on distance
+                    int moveCounts = (int) (-distance * COUNTS_PER_INCH);
+
+                    // Set target positions for the left and right motors
+                    int lfdTarget = lbd.getCurrentPosition() + moveCounts;
+                    int rbdTarget = rfd.getCurrentPosition() + moveCounts;
+
+                    lbd.setTargetPosition(lfdTarget);
+                    rfd.setTargetPosition(rbdTarget);
+
+                    // Ensure lbd and rfd are stationary if that's the intention
+                    lfd.setTargetPosition(0);
+                    rbd.setTargetPosition(0);
+
+                    // Set the motors to run to target positions
+                    lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    // Ensure positive maxDriveSpeed
+                    maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
+
+                    // Start moving the robot (no turning yet)
+                    moveRobot(maxDiagDriveSpeed, 0);
+
+                    // Continue moving until all motors reach target positions
+                    while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
+                        // Update turnSpeed for steering correction
+                        double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                        // Move robot with turn correction applied
+                        moveRobot(maxDiagDriveSpeed, turnSpeed);
+
+                        // Send telemetry data
+                        sendTelemetry(true);
+                    }
+
+                    // Stop robot when done
+                    moveRobot(0, 0);
+
+                    // Switch all motors to encoder mode for future use
+                    lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
             }
 
 
-            turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
+            public void splineLeft ( double maxDiagDriveSpeed, double heading, double distance){
+                if (opModeIsActive()) {
+
+                    // Ensure motors are set to FLOAT behavior
+                    lfd.setPower(0);
+                    lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    rbd.setPower(0);
+
+                    // Calculate target counts based on distance
+                    int moveCounts = (int) (distance * COUNTS_PER_INCH);
+
+                    // Set target positions for the left and right motors
+                    int lfdTarget = lbd.getCurrentPosition() + moveCounts;
+                    int rbdTarget = rfd.getCurrentPosition() + moveCounts;
+
+                    lbd.setTargetPosition(lfdTarget);
+                    rfd.setTargetPosition(rbdTarget);
+
+                    // Ensure lbd and rfd are stationary if that's the intention
+                    lfd.setTargetPosition(0);
+                    rbd.setTargetPosition(0);
+
+                    // Set the motors to run to target positions
+                    lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    // Ensure positive maxDriveSpeed
+                    maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
+
+                    // Start moving the robot (no turning yet)
+                    moveRobot(maxDiagDriveSpeed, 0);
+
+                    // Continue moving until all motors reach target positions
+                    while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
+                        // Update turnSpeed for steering correction
+                        double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+
+                        // Move robot with turn correction applied
+                        moveRobot(maxDiagDriveSpeed, turnSpeed);
+
+                        // Send telemetry data
+                        sendTelemetry(true);
+                    }
+
+                    // Stop robot when done
+                    moveRobot(0, 0);
+
+                    // Switch all motors to encoder mode for future use
+                    lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
+            }
 
 
-            moveRobot(0, turnSpeed);
-            sendTelemetry(true);
+            /**
+             * Proportional control to determine how much steering correction is needed.
+             *
+             * @param desiredHeading   Desired absolute heading.
+             * @param proportionalGain Gain factor for proportional control.
+             * @return Steering correction power.
+             */
+            public double getSteeringCorrection ( double desiredHeading, double proportionalGain){
+                targetHeading = desiredHeading;
+                headingError = targetHeading - getHeading();
 
+                while (headingError > 5) headingError -= 360;
+                while (headingError <= -5) headingError += 360;
 
-            while (opModeIsActive() && Math.abs(headingDifference) > 1) {
-                currentHeading = getHeading();
-                headingDifference = heading - currentHeading;
+                return Range.clip(headingError * proportionalGain, -1, 1);
+            }
 
+            /**
+             * Apply movement to the robot.
+             *
+             * @param drive Forward/reverse motor speed.
+             * @param turn  Clockwise turning motor speed.
+             */
+            public void moveRobot ( double drive, double turn){
+                // Set the left and right speeds
+                lfdSpeed = drive - turn;
+                lbdSpeed = drive - turn;
+                rfdSpeed = drive + turn;
+                rbdSpeed = drive + turn;
+                diagDriveSpeed = drive + -turn;
 
-                if (headingDifference > 180) {
-                    headingDifference -= 360;
-                } else if (headingDifference < -180) {
-                    headingDifference += 360;
+                // Scale down if either speed exceeds 1.0
+                double max = Math.max(Math.max(Math.abs(lfdSpeed), Math.abs(rfdSpeed)),
+                        Math.max(Math.abs(lbdSpeed), Math.abs(rbdSpeed)));
+
+                if (max > 0.7) {
+                    lfdSpeed /= max;
+                    rfdSpeed /= max;
+                    lbdSpeed /= max;
+                    rbdSpeed /= max;
                 }
 
 
-                turnSpeed = headingDifference / P_TURN_GAIN;
+                // Set motor power
+                lfd.setPower(lfdSpeed);
+                lbd.setPower(lbdSpeed);
+                rfd.setPower(rfdSpeed);
+                rbd.setPower(rbdSpeed);
 
 
-                if (Math.abs(turnSpeed) < minTurnSpeed) {
-                    turnSpeed = Math.signum(turnSpeed) * minTurnSpeed;
+            }
+
+            /**
+             * Get the current heading of the robot from the IMU.
+             *
+             * @return Current heading in degrees.
+             */
+            public double getHeading () {
+                YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+                return angles.getYaw(AngleUnit.DEGREES);
+            }
+
+            /**
+             * Send telemetry data to the driver station.
+             *
+             * @param isDriving Indicates if the robot is currently driving.
+             */
+            public void sendTelemetry ( boolean isDriving){
+                if (isDriving) {
+                    telemetry.addData("Drive Speed", driveSpeed);
                 }
+                telemetry.addData("Heading", getHeading());
+                telemetry.update();
+                telemetry.addData("Left Encoder", lfd.getCurrentPosition());
+                telemetry.addData("Right Encoder", rfd.getCurrentPosition());
+                telemetry.addData("Heading Error", getHeading());
+                telemetry.update();
 
-                turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
+             //   stop();
 
-                moveRobot(0, turnSpeed);
-                sendTelemetry(true);
             }
-
-
-            moveRobot(0, 0);
-            sendTelemetry(false);
-        }
-    }
-
-    /**
-     * Opening and closing the claw
-     *
-     */
-
-    public void openClaw() {
-        clawLeft.setPosition(0.3);
-        clawRight.setPosition(0.8);
-
-    }
-
-    public void closeClaw() {
-        clawLeft.setPosition(0.1);
-        clawRight.setPosition(1);
-    }
-
-    /**
-     * Strafing left and right
-     *
-     */
-
-    public void strafeRight(double maxDriveSpeed, double heading, double distance) {
-        if (opModeIsActive()) {
-            // Determine new target position for the motors
-            int moveCounts = (int)(distance * COUNTS_PER_INCH);
-            int negmoveCounts = (int)(-distance * COUNTS_PER_INCH);
-
-            // Set target positions for all four motors (left and right side)
-            lfdTarget = lfd.getCurrentPosition() + moveCounts;
-            lbdTarget = lbd.getCurrentPosition() + negmoveCounts;
-            rfdTarget = rfd.getCurrentPosition() + negmoveCounts;
-            rbdTarget = rbd.getCurrentPosition() + moveCounts;
-
-            // Set target positions FIRST, then enable RUN_TO_POSITION
-            lfd.setTargetPosition(lfdTarget);
-            lbd.setTargetPosition(lbdTarget);
-            rfd.setTargetPosition(rfdTarget);
-            rbd.setTargetPosition(rbdTarget);
-
-            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Start moving robot at constant speed (no turning correction initially)
-            maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0);  // Move laterally, no turning initially
-
-            // Loop until all motors reach their target position
-            while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
-                // Calculate the steering correction (for heading correction if needed)
-                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-
-                // Apply turn correction only if the robot is not close to the target heading
-                if (Math.abs(turnSpeed) > 0.05) {  // Only apply turn correction if the heading error is large
-                    moveRobot(maxDriveSpeed, turnSpeed);  // Apply turn correction
-                } else {
-                    // Apply no turning if we're close to the target heading
-                    moveRobot(maxDriveSpeed, 0);  // Continue strafing without turning
-                }
-
-                // Send telemetry for debugging
-                sendTelemetry(true);
-            }
-
-            // Stop all motion when done
-            moveRobot(0, 0);
-
-            // Set all motors to run using encoders after the movement
-            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-    /**
-     * Strafing right
-     *
-     */
-
-    public void strafeLeft(double maxDriveSpeed, double heading, double distance) {
-        if (opModeIsActive()) {
-            // Calculate the number of encoder counts needed for the distance
-            int moveCounts = (int)(distance * COUNTS_PER_INCH);
-            int negmoveCounts = (int)(-distance * COUNTS_PER_INCH);
-
-            // Set target positions for all four motors
-            lfdTarget = lfd.getCurrentPosition() + negmoveCounts;
-            lbdTarget = lbd.getCurrentPosition() + moveCounts;
-            rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbdTarget = rbd.getCurrentPosition() + negmoveCounts;
-
-            // Set target positions FIRST, then enable RUN_TO_POSITION
-            lfd.setTargetPosition(lfdTarget);
-            lbd.setTargetPosition(lbdTarget);
-            rfd.setTargetPosition(rfdTarget);
-            rbd.setTargetPosition(rbdTarget);
-
-            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Start moving robot at constant speed
-            maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0);  // Move laterally (no turning)
-
-            // Loop until all motors reach their target positions
-            while (opModeIsActive() && (lfd.isBusy() && rfd.isBusy() && lbd.isBusy() && rbd.isBusy())) {
-                // Calculate the steering correction based on the current heading
-                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-
-                // Only apply turnSpeed if the error is significant (e.g., >5 degrees)
-                if (Math.abs(turnSpeed) > 0.05) {  // Only apply turn correction if the error is large
-                    moveRobot(maxDriveSpeed, turnSpeed);  // Apply correction to keep the robot straight
-                } else {
-                    moveRobot(maxDriveSpeed, 0);  // Continue strafing without turning
-                }
-
-                // Debugging telemetry
-                telemetry.addData("Turn Speed", turnSpeed);
-                telemetry.addData("Heading Error", turnSpeed);
-            }
-
-            // Stop all motion when done
-            moveRobot(0, 0);
-
-            // Set all motors to run using encoders after the movement
-            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-
-    /**
-     *
-     * Drive backwards
-     */
-
-    public void driveBackwards(double maxDriveSpeed, double heading, double distance) {
-        if (opModeIsActive()) {
-            // Determine new target position, and pass to motor controller
-            int moveCounts = (int)(-distance * COUNTS_PER_INCH);
-            lfdTarget = lfd.getCurrentPosition() + moveCounts;
-            lbdTarget = lbd.getCurrentPosition() + moveCounts;
-            rfdTarget = rfd.getCurrentPosition() + moveCounts;
-            rbdTarget = rbd.getCurrentPosition() + moveCounts;
-
-            // Set Target FIRST, then turn on RUN_TO_POSITION
-            lfd.setTargetPosition(lfdTarget);
-            lbd.setTargetPosition(lbdTarget);
-            rfd.setTargetPosition(rfdTarget);
-            rbd.setTargetPosition(rbdTarget);
-
-            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-           rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Start moving robot with slightly adjusted right-side motor power for balancing
-            maxDriveSpeed = Math.abs(maxDriveSpeed);
-            moveRobot(maxDriveSpeed, 0.05);  // Apply small correction to turn right if it's curving left
-
-            // Loop until all motors reach their target
-            while (opModeIsActive() && ( rbd.isBusy() && lfd.isBusy() && rfd.isBusy() && lbd.isBusy())) {
-                // Adjust heading with proportional control
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-
-                if (distance < 0) turnSpeed *= -0.1;  // Reverse correction if moving backward
-
-                moveRobot(driveSpeed, turnSpeed);  // Apply drive and turn adjustments
-                sendTelemetry(true);
-            }
-
-            // Stop all motion
-            moveRobot(0, 0);
-            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-    /**
-     *
-     * Drive diagonally front left
-     */
-
-    public void REVsplineLeft(double maxDiagDriveSpeed, double heading, double distance) {
-        if (opModeIsActive()) {
-
-            // Ensure motors are set to FLOAT behavior
-            lfd.setPower(0);
-            lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rbd.setPower(0);
-
-            // Calculate target counts based on distance
-            int moveCounts = (int) (-distance * COUNTS_PER_INCH);
-
-            // Set target positions for the left and right motors
-            int lfdTarget = lbd.getCurrentPosition() + moveCounts;
-            int rbdTarget = rfd.getCurrentPosition() + moveCounts;
-
-            lbd.setTargetPosition(lfdTarget);
-            rfd.setTargetPosition(rbdTarget);
-
-            // Ensure lbd and rfd are stationary if that's the intention
-            lfd.setTargetPosition(0);
-            rbd.setTargetPosition(0);
-
-            // Set the motors to run to target positions
-            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Ensure positive maxDriveSpeed
-            maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
-
-            // Start moving the robot (no turning yet)
-            moveRobot(maxDiagDriveSpeed, 0);
-
-            // Continue moving until all motors reach target positions
-            while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
-                // Update turnSpeed for steering correction
-                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-
-                // Move robot with turn correction applied
-                moveRobot(maxDiagDriveSpeed, turnSpeed);
-
-                // Send telemetry data
-                sendTelemetry(true);
-            }
-
-            // Stop robot when done
-            moveRobot(0, 0);
-
-            // Switch all motors to encoder mode for future use
-            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-
-
-    public void splineLeft(double maxDiagDriveSpeed, double heading, double distance) {
-        if (opModeIsActive()) {
-
-            // Ensure motors are set to FLOAT behavior
-            lfd.setPower(0);
-            lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            rbd.setPower(0);
-
-            // Calculate target counts based on distance
-            int moveCounts = (int) (distance * COUNTS_PER_INCH);
-
-            // Set target positions for the left and right motors
-            int lfdTarget = lbd.getCurrentPosition() + moveCounts;
-            int rbdTarget = rfd.getCurrentPosition() + moveCounts;
-
-            lbd.setTargetPosition(lfdTarget);
-            rfd.setTargetPosition(rbdTarget);
-
-            // Ensure lbd and rfd are stationary if that's the intention
-            lfd.setTargetPosition(0);
-            rbd.setTargetPosition(0);
-
-            // Set the motors to run to target positions
-            lfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // Ensure positive maxDriveSpeed
-            maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
-
-            // Start moving the robot (no turning yet)
-            moveRobot(maxDiagDriveSpeed, 0);
-
-            // Continue moving until all motors reach target positions
-            while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
-                // Update turnSpeed for steering correction
-                double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-
-                // Move robot with turn correction applied
-                moveRobot(maxDiagDriveSpeed, turnSpeed);
-
-                // Send telemetry data
-                sendTelemetry(true);
-            }
-
-            // Stop robot when done
-            moveRobot(0, 0);
-
-            // Switch all motors to encoder mode for future use
-            lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
-    }
-
-
-
-    /**
-     * Proportional control to determine how much steering correction is needed.
-     *
-     * @param desiredHeading Desired absolute heading.
-     * @param proportionalGain Gain factor for proportional control.
-     * @return Steering correction power.
-     */
-    public double getSteeringCorrection(double desiredHeading, double proportionalGain) {
-        targetHeading = desiredHeading;
-        headingError = targetHeading - getHeading();
-
-        while (headingError > 5) headingError -= 360;
-        while (headingError <= -5) headingError += 360;
-
-        return Range.clip(headingError * proportionalGain, -1, 1);
-    }
-
-    /**
-     * Apply movement to the robot.
-     *
-     * @param drive Forward/reverse motor speed.
-     * @param turn Clockwise turning motor speed.
-     */
-    public void moveRobot(double drive, double turn) {
-        // Set the left and right speeds
-        lfdSpeed  = drive - turn;
-        lbdSpeed = drive -turn;
-        rfdSpeed = drive + turn;
-        rbdSpeed = drive +turn;
-        diagDriveSpeed = drive +- turn;
-
-        // Scale down if either speed exceeds 1.0
-        double max = Math.max(Math.max(Math.abs(lfdSpeed), Math.abs(rfdSpeed)),
-                Math.max(Math.abs(lbdSpeed), Math.abs(rbdSpeed)));
-
-        if (max > 0.7) {
-            lfdSpeed /= max;
-            rfdSpeed /= max;
-            lbdSpeed /= max;
-            rbdSpeed /= max;
         }
 
-
-        // Set motor power
-        lfd.setPower(lfdSpeed);
-        lbd.setPower(lbdSpeed);
-        rfd.setPower(rfdSpeed);
-        rbd.setPower(rbdSpeed);
-    }
-
-    /**
-     * Get the current heading of the robot from the IMU.
-     *
-     * @return Current heading in degrees.
-     */
-    public double getHeading() {
-        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-        return angles.getYaw(AngleUnit.DEGREES);
-    }
-
-    /**
-     * Send telemetry data to the driver station.
-     *
-     * @param isDriving Indicates if the robot is currently driving.
-     */
-    public void sendTelemetry(boolean isDriving) {
-        if (isDriving) {
-            telemetry.addData("Drive Speed", driveSpeed);
-        }
-        telemetry.addData("Heading", getHeading());
-        telemetry.update();
-        telemetry.addData("Left Encoder", lfd.getCurrentPosition());
-        telemetry.addData("Right Encoder", rfd.getCurrentPosition());
-        telemetry.addData("Heading Error", getHeading());
-        telemetry.update();
-
-    }
-}
 
 
