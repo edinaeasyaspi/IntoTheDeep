@@ -35,7 +35,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @Autonomous
-
+@Disabled
 public class EncoderLinearAuto extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -55,7 +55,7 @@ public class EncoderLinearAuto extends LinearOpMode {
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 0.4;
+    static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
 
     @Override
@@ -75,11 +75,6 @@ public class EncoderLinearAuto extends LinearOpMode {
         rfd.setDirection(DcMotor.Direction.FORWARD);
         rbd.setDirection(DcMotor.Direction.FORWARD);
         lbd.setDirection(DcMotor.Direction.REVERSE);
-
-        rfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lbd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         lfd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rfd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -106,11 +101,8 @@ public class EncoderLinearAuto extends LinearOpMode {
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         encoderDrive(DRIVE_SPEED,  10,  10, 5.0);  // S1: Forward 47 Inches with 5 Sec timeout
-        encoderDrive(TURN_SPEED,   24, -24, 4.0);
-        // S2: Turn Right 12 Inches with 4 Sec timeout
-        encoderDrive(DRIVE_SPEED, 20, 20, 4.0);
-        encoderDrive(TURN_SPEED, 7, -7, 4.0);
-        encoderDrive(DRIVE_SPEED, 15, 15, 4.0);// S3: Reverse 24 Inches with 4 Sec timeout
+   //     encoderDrive(TURN_SPEED,   1, -1, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
+   //     encoderDrive(DRIVE_SPEED, -1, -1, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
 
         telemetry.addData("Path", "Complete");
         telemetry.update();

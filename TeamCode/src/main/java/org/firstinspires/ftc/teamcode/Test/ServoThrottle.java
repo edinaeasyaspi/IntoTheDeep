@@ -12,7 +12,6 @@ public class ServoThrottle {
     private final double rate;
     private double startTime, startPos, stopTime, stopPos;
 
-
     public ServoThrottle(Servo servo, double rate, double initPos) {
         this.servo = servo;
         this.rate = rate;
@@ -21,8 +20,8 @@ public class ServoThrottle {
     }
 
     public void setTargetPos(double pos) {
-        startPos = getPosEstimate();
         startTime = timer.seconds();
+        startPos = getPosEstimate();
         stopPos = pos;
         stopTime = (stopPos - startPos) / rate + startTime;
     }
