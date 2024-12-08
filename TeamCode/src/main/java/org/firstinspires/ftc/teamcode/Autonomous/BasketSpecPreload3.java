@@ -45,18 +45,18 @@ import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name = "CloseNetPreload1", group = "Robot")
-public class GyroAuto extends LinearOpMode {
+@Autonomous(name = "BasketPreload2", group = "Robot")
+public class BasketSpecPreload3 extends LinearOpMode {
 
-    /* Declare OpMode members. */
+
     private DcMotor lfd, rfd, lbd, rbd, lift = null;
     private IMU imu = null;
-    private Servo clawLeft, clawRight, swingLeft, swingRight = null;// Control/Expansion Hub IMU
+    private Servo clawLeft, clawRight, swingLeft, swingRight = null;
     private CRServo armExtend = null;
     private double headingError = 0;
     private double targetHeading = 0;
-    private double driveSpeed = 0.6;  // Set initial speed to 10%
-    private double turnSpeed = 0.5;
+    private double driveSpeed = 0.5;
+    private double turnSpeed = 0.4;
     private double diagDriveSpeed = 0.7;
     private double lfdSpeed = 0.5;
     private double rfdSpeed = 0.5;
@@ -64,7 +64,6 @@ public class GyroAuto extends LinearOpMode {
     private double lbdSpeed = 0.5;
     private int lfdTarget, rfdTarget, rbdTarget, lbdTarget = 0;
 
-    // Constants
     static final double COUNTS_PER_MOTOR_REV = 537.6;  // Example motor encoder counts
     static final double DRIVE_GEAR_REDUCTION = 1.0;     // No External Gearing.
     static final double WHEEL_DIAMETER_INCHES = 3.78;     // For figuring circumference
@@ -77,8 +76,6 @@ public class GyroAuto extends LinearOpMode {
 
     ServoThrottle thSwingLeft, thSwingRight;
 
-
-    double wheelCircumference = WHEEL_DIAMETER_INCHES * Math.PI;
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -159,37 +156,38 @@ public class GyroAuto extends LinearOpMode {
 
 
             closeClaw();
-            strafeLeft(1, 0, 5);
-            driveBackwards(1, 0, 15);
+            strafeLeft(0.7, 0, 5);
+            driveBackwards(0.7, 0, 14);
             liftUp();
-            turnToHeading(1, 40);
-            turnToHeading(1, 40);
-            //turnToHeading(0.6, 40);
+            turnToHeading(0.7, 20);
+            turnToHeading(0.7, 20);
             armSwingToBasket();
-            sleep(1000);
+            sleep(900);
             openClaw();
-            returnArm();
-            //    liftDown();
-          //  sleep(4000);
+            liftDown();
+            armMedPos();
+            sleep(4000);
             resetGyro();
             turnToHeading(0.6, 45);
-            //  strafeRight(0.7, 90, 7);
-            armMedPos();
             resetGyro();
-           // strafeLeft(0.7, 0, 10);
             driveStraight(0.7, 17, 0);
-        //    armExtendSpecSwing();
-         //   sleep(1000);
             returnArm();
             closeClaw();
             driveBackwards(0.7, 0, 11);
             turnToHeading(0.7, -40);
-            //   liftUp();
+            liftUp();
             armSwingToBasket();
             sleep(2000);
             openClaw();
             returnArm();
-            // liftDown();
+            liftDown();
+
+//        closeClaw();
+//        armSpecSwingPos();
+//        sleep(1000);
+//        driveStraight(0.7, 2, 0);
+//        armMedPos();
+//        openClaw();
 
             telemetry.addData("Test Path", "Complete");
             telemetry.update();
@@ -306,13 +304,13 @@ public class GyroAuto extends LinearOpMode {
             }
             public void liftDown () {
                 if (opModeIsActive()) {
-                    lift.setTargetPosition(0);
+                    lift.setTargetPosition(-100);
                     lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
             }
             public void liftUp () {
                 if (opModeIsActive()) {
-                lift.setTargetPosition(-7450);
+                lift.setTargetPosition(-3500);
                 lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }}
 
@@ -377,70 +375,73 @@ public class GyroAuto extends LinearOpMode {
              */
             public void turnToHeading(double maxTurnSpeed, double heading) {
                 if (opModeIsActive()) {
+
                     double currentHeading = getHeading();
                     double headingDifference = heading - currentHeading;
 
-                    // Normalize heading difference to [-180, 180]
+
                     if (headingDifference > 180) {
                         headingDifference -= 360;
                     } else if (headingDifference < -180) {
                         headingDifference += 360;
                     }
 
-                    // PID constants (these values need to be tuned for your robot)
-                    double Kp = 0.02;   // Proportional constant
-                    double Ki = 0.001;  // Integral constant
-                    double Kd = 0.01;   // Derivative constant
+                    double turnSpeed = headingDifference / 0.05;
+                    double minTurnSpeed = 0.2;
 
-                    // PID variables
-                    double error = headingDifference;
-                    double integral = 0;
-                    double previousError = 0;
-                    double derivative = 0;
-
-                    // Minimum turn speed threshold
-                    double minTurnSpeed = 0.05;
-
-                    while (opModeIsActive() && Math.abs(error) > 1) {
+                    while (opModeIsActive() && Math.abs(headingDifference) > 1) {
                         currentHeading = getHeading();
                         headingDifference = heading - currentHeading;
 
-                        // Normalize heading difference to [-180, 180]
+
                         if (headingDifference > 180) {
                             headingDifference -= 360;
                         } else if (headingDifference < -180) {
                             headingDifference += 360;
                         }
 
-                        // Calculate the PID error
-                        error = headingDifference;
-                        integral += error;   // Accumulate error
-                        derivative = error - previousError;  // Change in error
-                        previousError = error;  // Update previous error
 
-                        // Calculate the PID output
-                        double pidOutput = (Kp * error) + (Ki * integral) + (Kd * derivative);
+                        double decelerationFactor = Math.pow(Math.abs(headingDifference) / 180.0, 2);
+                        turnSpeed = (headingDifference / P_TURN_GAIN) * decelerationFactor;
 
-                        // Apply minimum turn speed threshold
-                        if (Math.abs(pidOutput) < minTurnSpeed) {
-                            pidOutput = Math.signum(pidOutput) * minTurnSpeed;
+
+                        if (Math.abs(turnSpeed) < minTurnSpeed) {
+                            turnSpeed = Math.signum(turnSpeed) * minTurnSpeed;
                         }
 
-                        // Clip the turn speed to be within the range of -maxTurnSpeed to maxTurnSpeed
-                        pidOutput = Range.clip(pidOutput, -maxTurnSpeed, maxTurnSpeed);
 
-                        // Move the robot based on the PID output
-                        moveRobot(0, pidOutput);
+                        turnSpeed = Range.clip(turnSpeed, -maxTurnSpeed, maxTurnSpeed);
 
-                        // Send telemetry for debugging
+
+                        moveRobot(0, turnSpeed);
                         sendTelemetry(true);
                     }
 
-                    // Stop the robot after reaching the desired heading
+
                     moveRobot(0, 0);
                     sendTelemetry(false);
                 }
             }
+
+            public void armSpecSwingPos() {
+                if (opModeIsActive()) {
+                    ServoThrottle thSwingLeft, thSwingRight;
+                    thSwingLeft = new ServoThrottle(swingLeft, 0.7, 1);
+                    thSwingRight = new ServoThrottle(swingRight, 0.7, 0);
+
+
+                    thSwingLeft.setTargetPos(0.3);
+                    thSwingRight.setTargetPos(0.7);
+
+                    ElapsedTime t = new ElapsedTime();
+                    while (t.seconds() < 1) {
+                        thSwingLeft.run();
+                        thSwingRight.run();
+                    }
+
+                }
+            }
+
 
 
     /**
@@ -457,7 +458,7 @@ public class GyroAuto extends LinearOpMode {
             public void closeClaw () {
                 if (opModeIsActive()) {
                 clawLeft.setPosition(0.1);
-                clawRight.setPosition(1);
+                clawRight.setPosition(0.5);
             }}
 
             /**
@@ -651,7 +652,7 @@ public class GyroAuto extends LinearOpMode {
                     lbd.setTargetPosition(lfdTarget);
                     rfd.setTargetPosition(rbdTarget);
 
-                    // Ensure lbd and rfd are stationary if that's the intention
+
                     lfd.setTargetPosition(0);
                     rbd.setTargetPosition(0);
 
@@ -661,15 +662,15 @@ public class GyroAuto extends LinearOpMode {
                     lbd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     rfd.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                    // Ensure positive maxDriveSpeed
+
                     maxDiagDriveSpeed = Math.abs(maxDiagDriveSpeed);
 
-                    // Start moving the robot (no turning yet)
+
                     moveRobot(maxDiagDriveSpeed, 0);
 
-                    // Continue moving until all motors reach target positions
+
                     while (opModeIsActive() && (lbd.isBusy() && rfd.isBusy())) {
-                        // Update turnSpeed for steering correction
+
                         double turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
 
                         // Move robot with turn correction applied
@@ -764,7 +765,7 @@ public class GyroAuto extends LinearOpMode {
                 while (headingError > 5) headingError -= 360;
                 while (headingError <= -5) headingError += 360;
 
-                return Range.clip(headingError * proportionalGain, -1, 1);
+                return Range.clip(headingError * P_TURN_GAIN, -1, 1);
             }
 
             /**
@@ -828,7 +829,9 @@ public class GyroAuto extends LinearOpMode {
                 telemetry.addData("Heading Error", getHeading());
                 telemetry.update();
 
-             //   stop();
+                sleep(1000);
+
+
 
             }
         }

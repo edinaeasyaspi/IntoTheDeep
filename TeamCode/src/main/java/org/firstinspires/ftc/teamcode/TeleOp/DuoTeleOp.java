@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 
 import org.firstinspires.ftc.teamcode.RoadRunner.messages.PoseMessage;
@@ -31,7 +32,7 @@ public class    DuoTeleOp extends LinearOpMode {
     private DcMotor lift = null;
     private CRServo armExtend = null;
     private IMU imu = null;
-    DigitalChannel digitalTouch;
+
 
     private Servo swingLeft, swingRight;
 
@@ -57,11 +58,7 @@ public class    DuoTeleOp extends LinearOpMode {
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(orientationOnRobot));
-        digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
 
-        digitalTouch.setMode(DigitalChannel.Mode.INPUT);
-        telemetry.addData("DigitalTouchSensorExample", "Press start to continue...");
-        telemetry.update();
 
 
 
@@ -93,8 +90,8 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
         ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 1, 1);
-        thSwingRight = new ServoThrottle(swingRight, 1, 0);
+        thSwingLeft= new ServoThrottle(swingLeft, 1, 0.85);
+        thSwingRight = new ServoThrottle(swingRight, 1, 0.15 );
 
 
 
@@ -111,10 +108,10 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
 
-        lfd.setZeroPowerBehavior(FLOAT);
-        lbd.setZeroPowerBehavior(FLOAT);
-        rbd.setZeroPowerBehavior(FLOAT);
-        rfd.setZeroPowerBehavior(FLOAT);
+        lfd.setZeroPowerBehavior(BRAKE);
+        lbd.setZeroPowerBehavior(BRAKE);
+        rbd.setZeroPowerBehavior(BRAKE);
+        rfd.setZeroPowerBehavior(BRAKE);
         lift.setZeroPowerBehavior(BRAKE);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setTargetPosition(0);
@@ -137,9 +134,8 @@ public class    DuoTeleOp extends LinearOpMode {
             ElapsedTime elapsedTime = new ElapsedTime();
 
             double max;
-            double powerLimit = 0.6;
+                    double powerLimit = 0.3;
 
-            ElapsedTime dropTimer = null;
 
 
 
@@ -153,6 +149,8 @@ public class    DuoTeleOp extends LinearOpMode {
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower   = axial - lateral + yaw;
             double rightBackPower  = axial + lateral - yaw;
+
+
 
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
@@ -172,34 +170,28 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
 
-            if (digitalTouch.getState() == true) {
-                thSwingLeft.setTargetPos(0.7);
-                thSwingRight.setTargetPos(0.3);
-            telemetry.addData("Arm", "IS DRAGGING, SENDING ARM TO HIGHER POSITION");
-            } else {
-                telemetry.addData("Arm ", "IS NOT DRAGGING, CONTINUE WITH CURRENT POSITION");
-            }
-
-            telemetry.update();
-
 
 
 
 
 
             if (gamepad2.dpad_up) {
-                lift.setTargetPosition(-7450);
+                lift.setTargetPosition(-3800);
+                lift.setPower(1);
                 lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             } else if (gamepad2.dpad_down) {
-                lift.setTargetPosition(0);
+                lift.setTargetPosition(100);
+                lift.setPower(0.6);
                 lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             if (gamepad2.dpad_right) {
-                lift.setTargetPosition(-3500);
+                lift.setTargetPosition(-2900);
+                lift.setPower(0.7);
                 lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             if (gamepad2.dpad_left) {
                 lift.setTargetPosition(-1500);
+                lift.setPower(1);
                 lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             if (gamepad2.a ) {
@@ -218,8 +210,8 @@ public class    DuoTeleOp extends LinearOpMode {
                 clawRight.setPosition(0.4);
             }
             if(gamepad2.right_trigger > 0.8){
-                thSwingLeft.setTargetPos(0.7);
-                thSwingRight.setTargetPos(0.3);
+                thSwingLeft.setTargetPos(0.85);
+                thSwingRight.setTargetPos(0.15);
             }
             if (gamepad2.left_trigger>0.8) {
                 thSwingLeft.setTargetPos(0.1);
@@ -237,9 +229,9 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
             if (gamepad1.a)
-                powerLimit = 0.6;
-            else
                 powerLimit = 0.3;
+            else
+                powerLimit = 0.2;
 
 
             lfd.setPower(leftFrontPower * powerLimit);
@@ -258,12 +250,14 @@ public class    DuoTeleOp extends LinearOpMode {
             lbd.setPower(leftBackPower);
 
 
-            telemetry.addData("Status", "Robot is moving" + runtime.toString());
+            telemetry.addData("Status", "Robot is moving" + elapsedTime.toString());
             telemetry.addData("gamepad controller values", "%4.2f, %4.2f", axial, lateral, yaw);
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Time", "runtime");
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Lift", lift.getCurrentPosition());
+            telemetry.addData("armPos", thSwingLeft.getPosEstimate());
+            telemetry.addData("armPos", thSwingRight.getPosEstimate());
 
             telemetry.update();
         }
