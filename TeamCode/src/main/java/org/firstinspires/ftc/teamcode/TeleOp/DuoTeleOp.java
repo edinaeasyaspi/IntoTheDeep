@@ -90,8 +90,8 @@ public class    DuoTeleOp extends LinearOpMode {
 
 
         ServoThrottle thSwingLeft, thSwingRight;
-        thSwingLeft= new ServoThrottle(swingLeft, 1, 0.85);
-        thSwingRight = new ServoThrottle(swingRight, 1, 0.15 );
+        thSwingLeft= new ServoThrottle(swingLeft, 0.75, 0.85);
+        thSwingRight = new ServoThrottle(swingRight, 0.75, 0.15 );
 
 
 
@@ -202,11 +202,11 @@ public class    DuoTeleOp extends LinearOpMode {
                 armExtend.setPower(0);
             }
             if (gamepad2.right_bumper) {
-                clawLeft.setPosition(0.1);
+                clawLeft.setPosition(0.75);
                 clawRight.setPosition(0.5);
             }
             if (gamepad2.left_bumper) {
-                clawLeft.setPosition(0.2);
+                clawLeft.setPosition(0.25);
                 clawRight.setPosition(0.4);
             }
             if(gamepad2.right_trigger > 0.8){
@@ -218,8 +218,10 @@ public class    DuoTeleOp extends LinearOpMode {
                 thSwingRight.setTargetPos(0.9);
             }
             if (gamepad2.x) {
-                thSwingLeft.setTargetPos(0.4);
-                thSwingRight.setTargetPos(0.6);
+                thSwingLeft.setTargetPos(0.8);
+                thSwingRight.setTargetPos(0.2);
+
+
             }
             if (gamepad2.y) {
                 thSwingLeft.setTargetPos(0.6);

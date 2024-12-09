@@ -11,16 +11,18 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.Test.ServoThrottle;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Autonomous(name="Far Side Basket Park ", group="Robot")
-public class FarBaskPark extends LinearOpMode {
+@Autonomous(name="Basket Preload ", group="Robot")
+public class BasketPreload extends LinearOpMode {
 
     /* Declare OpMode members. */
-    private DcMotor lfd, rfd, lbd, rbd  = null;
+    private DcMotor lfd, rfd, lbd, rbd, lift  = null;
     private IMU imu = null;
-    private Servo clawLeft, clawRight = null;// Control/Expansion Hub IMU
+    private Servo clawLeft, clawRight, swingLeft, swingRight = null;
+
 
     private double headingError = 0;
     private double targetHeading = 0;
@@ -31,6 +33,7 @@ public class FarBaskPark extends LinearOpMode {
     private double rbdSpeed = 0.5;
     private double lbdSpeed = 0.5;
     private int lfdTarget, rfdTarget, rbdTarget, lbdTarget = 0;
+    ServoThrottle thSwingLeft, thSwingRight;
 
     // Constants
     static final double COUNTS_PER_MOTOR_REV = 537.6 ;  // Example motor encoder counts
@@ -42,6 +45,10 @@ public class FarBaskPark extends LinearOpMode {
     static final double P_TURN_GAIN = 10;
     static final double P_DRIVE_GAIN = 0.001;
     static final double POWER_LIMIT = 0.1;
+
+
+
+
 
 
     double wheelCircumference = WHEEL_DIAMETER_INCHES * Math.PI;
@@ -58,6 +65,11 @@ public class FarBaskPark extends LinearOpMode {
         rbd = hardwareMap.get(DcMotor.class, "rbd");
         clawLeft = hardwareMap.get(Servo.class, "clawLeft");
         clawRight = hardwareMap.get(Servo.class, "clawRight");
+        lift = hardwareMap.get(DcMotor.class, "lift");
+
+        thSwingLeft = new ServoThrottle(swingLeft, 0.9, 0.7);
+        thSwingRight = new ServoThrottle(swingRight, 0.9, 0.3);
+        ServoThrottle thSwingLeft, thSwingRight;
 
         // Motor directions (adjust if needed)
         lfd.setDirection(DcMotor.Direction.REVERSE);
@@ -77,6 +89,8 @@ public class FarBaskPark extends LinearOpMode {
         rfd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rbd.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        imu.resetYaw();
 
         // Set zero power behavior
         lfd.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -88,32 +102,43 @@ public class FarBaskPark extends LinearOpMode {
         while (opModeInInit()) {
             clawLeft.setPosition(0.1);
             clawRight.setPosition(0.5);
-            imu.resetYaw();// Only reset the yaw once at the start
+            imu.resetYaw();
+
+            thSwingLeft = new ServoThrottle(swingLeft, 0.9, 0.7);
+            thSwingRight = new ServoThrottle(swingRight, 0.9, 0.3);
+
+
+            thSwingLeft.setTargetPos(0.7);
+            thSwingRight.setTargetPos(0.3);
+            lift.setTargetPosition(0);
+
+            // Only reset the yaw once at the start
 
             telemetry.addData(">", "Robot Heading = %4.0f", getHeading());
             telemetry.update();
         }
 
         // Set encoders to RUN_USING_ENCODER mode
-        lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        imu.resetYaw();
+//        lfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        lbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rfd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        rbd.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
 
 
 
         closeClaw();
 
-        driveStraight(0.7,  9, 0);
-        turnToHeading(0.6, -90);
-        turnToHeading(0.6, -90);
-        driveStraight(0.3, 35, -90);
-        turnToHeading(0.6, -90);
-        strafeRight(0.6, -90, 5);
+        strafeLeft(0.7, 0, 3);
+        driveBackwards(0.7, 0, 19);
+        turnToHeading(0.7, 40);
+        liftUp();
+        armSwingToBasket();
+        sleep(1000);
         openClaw();
-        sleep (500);
+
+
 
 
 
@@ -130,6 +155,46 @@ public class FarBaskPark extends LinearOpMode {
     public void resetGyro() {
         imu.resetYaw();
     }
+
+    public void armSwingToBasket () {
+        if (opModeIsActive()) {
+
+            ServoThrottle thSwingLeft, thSwingRight;
+            thSwingLeft = new ServoThrottle(swingLeft, 1, 1);
+            thSwingRight = new ServoThrottle(swingRight, 1, 0);
+
+
+            thSwingLeft.setTargetPos(0.1);
+            thSwingRight.setTargetPos(0.9);
+
+            ElapsedTime t = new ElapsedTime();
+            while (t.seconds() < 1) {
+                thSwingLeft.run();
+                thSwingRight.run();
+            }}
+
+    }
+
+
+    public void returnArm () {
+        if (opModeIsActive()) {
+            ServoThrottle thSwingLeft, thSwingRight;
+            thSwingLeft = new ServoThrottle(swingLeft, 1, 1);
+            thSwingRight = new ServoThrottle(swingRight, 1, 0);
+
+
+            thSwingLeft.setTargetPos(0.7);
+            thSwingRight.setTargetPos(0.3);
+
+            ElapsedTime t = new ElapsedTime();
+            while (t.seconds() < 1) {
+                thSwingLeft.run();
+                thSwingRight.run();
+            }
+        }}
+
+
+
 
     /**
      * Drive in a straight line, on a fixed compass heading, based on encoder counts.
@@ -247,6 +312,13 @@ public class FarBaskPark extends LinearOpMode {
 
             moveRobot(0, 0);
             sendTelemetry(false);
+        }
+    }
+
+    public void liftUp() {
+        if (opModeIsActive()) {
+            lift.setTargetPosition(-3800);
+            lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
     }
 
